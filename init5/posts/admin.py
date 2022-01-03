@@ -17,7 +17,7 @@ class PostsAdmin(admin.ModelAdmin):
 
 class CommentsAdmin(admin.ModelAdmin):
     list_display = ('post',
-    'user',
+    'author',
     'content',
     'date_create',
     'date_update',
