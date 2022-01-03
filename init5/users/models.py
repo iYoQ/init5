@@ -70,7 +70,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     def __str__(self):
-        return str(self.username)
+        return f'{self.username}'
     
     def __call__(self):
         return self
@@ -79,4 +79,4 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = 'User'
         verbose_name_plural = 'Users'
-        ordering = ['id']
+        ordering = ('id', )

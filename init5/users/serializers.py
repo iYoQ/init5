@@ -1,5 +1,5 @@
 from django.db.models import fields
-from rest_framework import request, serializers
+from rest_framework import serializers
 from rest_framework.settings import api_settings
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('email', 'username', 'date_registration', 'last_login', 'role', 'description', 'birth_date', 'is_newsmaker')
         read_only_fields = ('username', 'role', 'is_newsmaker')
 
-class AdminUserSerializer(serializers.ModelSerializer):
+class AdminSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
@@ -68,11 +68,10 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
 
 class AdminUpdateUserSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = User
-        fields = '__all__'
-        
+        fields = ('is_staff', 'is_active', 'description', 'is_newsmaker', 'role')
 
 class CurrentPasswordSerializer(serializers.Serializer):
     current_password = serializers.CharField()
@@ -88,5 +87,5 @@ class CurrentPasswordSerializer(serializers.Serializer):
         self.fail('invalid_password')
 
 
-class UserDeleteSerializer(CurrentPasswordSerializer):
+class AdminDeleteSerializer(CurrentPasswordSerializer):
     pass
