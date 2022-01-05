@@ -4,6 +4,7 @@ from rest_framework import serializers
 from django.core import exceptions
 import json
 from .models import *
+from .service import check_or_add_users_changed_rating
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -12,7 +13,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id', 'headline', 'content', 'date_update', 'number_of_comments', 'rating', 'author', )
+        fields = ('id', 'headline', 'content', 'date_update', 'users_changed_rating', 'number_of_comments', 'rating', 'author', )
     
 
 class ArticleCreateSerializer(serializers.ModelSerializer):
@@ -89,17 +90,15 @@ class ChangeRatingSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-        user = self.context['request'].user.username
-        user_rating = validated_data.get('rating', instance.rating)
+        user = self.context['request'].user
+        new_user_rating = validated_data.get('rating', instance.rating)
         coefficient = 0.1
-
-        if instance.users_changed_rating.get(user):
-            return self.fail('alredy_exists')
-
-        instance.users_changed_rating[user] = user_rating
         
-        rating_coefficient = user_rating*coefficient
+        check_or_add_users_changed_rating(self, instance, user, new_user_rating, coefficient)
+
+        rating_coefficient = new_user_rating*coefficient
         instance.rating += rating_coefficient
+        instance.rating = round(instance.rating, 1)
         instance.save()
         return instance
 
