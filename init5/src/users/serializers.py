@@ -8,13 +8,20 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    
+    ''' Show user profile
+    '''
+
+
     class Meta:
         model = User
-        fields = ('email', 'username', 'url', 'date_registration', 'last_login', 'role', 'description', 'birth_date', 'is_newsmaker')
+        fields = ('email', 'username', 'url', 'date_registration', 'last_login', 'role', 'description', 'gender', 'birth_date', 'is_newsmaker')
         read_only_fields = ('username', 'role', 'is_newsmaker')
 
+
 class AdminSerializer(serializers.ModelSerializer):
+    '''Show user profile for admin
+    '''
+
 
     class Meta:
         model = User
@@ -64,7 +71,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'description', 'birth_date')
+        fields = ('email', 'description', 'birth_date', 'gender', )
 
 
 class AdminUpdateUserSerializer(serializers.ModelSerializer):
@@ -73,7 +80,11 @@ class AdminUpdateUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('is_staff', 'is_active', 'description', 'is_newsmaker', 'role')
 
+
 class CurrentPasswordSerializer(serializers.Serializer):
+    '''Request password for some changes
+    '''
+
     current_password = serializers.CharField()
 
     default_error_messages = {
@@ -88,4 +99,6 @@ class CurrentPasswordSerializer(serializers.Serializer):
 
 
 class AdminDeleteSerializer(CurrentPasswordSerializer):
+    '''Delete content
+    '''
     pass

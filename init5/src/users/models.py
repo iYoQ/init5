@@ -48,22 +48,28 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     USER = 'user'
     ADMIN = 'admin'
-    ROLE = [
+    ROLE = (
         (USER, 'user'),
         (ADMIN, 'admin'),
-    ]
+    )
+    GENDER = (
+        ('male', 'male'),
+        ('female', 'female'),
+    )
 
     email = models.EmailField(max_length=254, db_index=True, validators=[validators.validate_email], unique=True)
-    username = models.CharField(max_length=25,unique=True)
+    username = models.CharField(max_length=25, unique=True)
     name = models.CharField(max_length=200, null=True, blank=True)
+    description = models.TextField(blank=True, null=True)
+    gender = models.CharField(max_length=10, choices=GENDER, null=True, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    avatar = models.ImageField(upload_to='user/avatar/', blank=True, null=True)
+    url = models.SlugField(null=True)
+    role = models.CharField(max_length=20, choices=ROLE, default=USER, null=True, blank=True)
     date_registration = models.DateTimeField(verbose_name='date registration', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
-    role = models.CharField(max_length=20, choices=ROLE, default=USER, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    description = models.TextField(blank=True, null=True)
-    birth_date = models.DateField(null=True, blank=True)
-    url = models.SlugField(null=True)
     is_newsmaker = models.BooleanField(default=False)
     hide_email = models.BooleanField(default=True)
 

@@ -1,12 +1,19 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.decorators import action
-from users.serializers import AdminDeleteSerializer
-from users.permissions import *
-from .models import *
+from src.users.serializers import AdminDeleteSerializer
+from rest_framework.permissions import (
+    IsAdminUser, 
+    IsAuthenticated, 
+    IsAuthenticatedOrReadOnly
+)
+from .models import (
+    Post,
+    Comment
+)
 from .serializers import *
+import src.users.permissions as custom_permissions
 
 
 class PostViewSet(ModelViewSet):
@@ -14,12 +21,14 @@ class PostViewSet(ModelViewSet):
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
 
     def get_permissions(self):
-        if self.action in ['create_article', 'change_rating']:
+        if self.action == 'create':
+            self.permission_classes = [custom_permissions.ReadOnly]
+        elif self.action in ['create_article', 'change_rating']:
             self.permission_classes = [IsAuthenticated]
         elif self.action == 'create_news':
-            self.permission_classes = [UserIsNewsmaker]
+            self.permission_classes = [custom_permissions.UserIsNewsmaker]
         elif self.action == 'partial_update':
-            self.permission_classes = [UserIsOwnerOrAdmin]
+            self.permission_classes = [custom_permissions.UserIsPostOwnerOrAdmin]
         elif self.action == 'destroy':
             self.permission_classes = [IsAdminUser]
 
@@ -60,4 +69,3 @@ class NewsViewSet(PostViewSet):
     @action(['post'], detail=False)
     def create_news(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
-

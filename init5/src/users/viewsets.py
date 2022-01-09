@@ -1,15 +1,26 @@
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated, IsAuthenticatedOrReadOnly
-from rest_framework.decorators import action
+from rest_framework.viewsets import GenericViewSet
 from django.contrib.auth import logout
+from rest_framework.decorators import action
 from .models import User
+from rest_framework.mixins import (
+    RetrieveModelMixin, 
+    UpdateModelMixin, 
+    DestroyModelMixin, 
+    ListModelMixin
+)
+from rest_framework.permissions import (
+    AllowAny, 
+    IsAdminUser, 
+    IsAuthenticated, 
+    IsAuthenticatedOrReadOnly
+)
 from .serializers import *
-from .permissions import *
+from .permissions import UserIsOwnerOrAdmin
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
@@ -18,26 +29,25 @@ class UserViewSet(ModelViewSet):
 
 
     def get_permissions(self):
-        if self.action == 'create':
-            self.permission_classes = [ReadOnly]
-        elif self.action == 'partial_update':
-            self.permission_classes = [UserIsOwnerOrAdmin]
+        if self.action == 'partial_update':
+            self.permission_classes = [IsAdminUser]
         elif self.action == 'destroy':
             self.permission_classes = [IsAdminUser]
         elif self.action == 'me':
-            self.permission_classes = [IsAuthenticated]
+            self.permission_classes = [UserIsOwnerOrAdmin]
 
         return super().get_permissions()
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve', 'me', 'partial_update'] and self.request.user.is_superuser:
+        if self.action in ['list', 'retrieve', 'me'] and self.request.user.is_superuser:
             return AdminSerializer
         elif self.action == 'registration':
             return UserRegistrationSerializer
         elif self.action == 'partial_update' and self.request.user.is_superuser:
             return AdminUpdateUserSerializer
-        elif self.action == 'partial_update':
-            return UpdateUserSerializer
+        elif self.action == 'me':
+            if self.request.method == 'PATCH':
+                return UpdateUserSerializer
         elif self.action == 'destroy':
             return AdminDeleteSerializer
         
@@ -47,7 +57,7 @@ class UserViewSet(ModelViewSet):
     def registration(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            self.perform_create(serializer)
             return Response('account created', status=status.HTTP_201_CREATED)
         return Response('invalid data', status=status.HTTP_400_BAD_REQUEST)
     
@@ -70,5 +80,7 @@ class UserViewSet(ModelViewSet):
         if instance == request.user:
             logout(self.request)
         self.perform_destroy(instance)
-        return Response('user deleted.', status=status.HTTP_204_NO_CONTENT)    
-
+        return Response('user deleted.', status=status.HTTP_204_NO_CONTENT)
+    
+    def perform_create(self, serializer):
+        serializer.save()

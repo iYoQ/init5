@@ -1,19 +1,20 @@
-from django.db.models import fields
 from django.db.utils import IntegrityError
 from rest_framework import serializers
-from django.core import exceptions
-import json
-from .models import *
 from .service import check_or_add_users_changed_rating
+from .models import (
+    Post,
+    Comment
+)
 
 
 class ArticleSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username')
     id = serializers.IntegerField(read_only=True)
+    number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
 
     class Meta:
         model = Post
-        fields = ('id', 'headline', 'content', 'date_update', 'users_changed_rating', 'number_of_comments', 'rating', 'author', )
+        fields = ('id', 'headline', 'content', 'date_update', 'number_of_users_changed_rating', 'number_of_comments', 'users_changed_rating', 'rating', 'author', )
     
 
 class ArticleCreateSerializer(serializers.ModelSerializer):
