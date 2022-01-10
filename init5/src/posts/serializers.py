@@ -1,21 +1,82 @@
+from __future__ import annotations
 from django.db.utils import IntegrityError
 from rest_framework import serializers
 from .service import check_or_add_users_changed_rating
 from .models import (
-    Post,
-    Comment
+    Article,
+    News,
+    ArticleComment,
+    NewsComment
+)
+from src.general.serializers import (
+    CommentRecursiveChildSerializer,
+    CommentOnlyParentListSerializer
 )
 
 
-class ArticleSerializer(serializers.ModelSerializer):
-    author = serializers.CharField(source='author.username')
-    id = serializers.IntegerField(read_only=True)
-    number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
+class CreateArticleCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Post
-        fields = ('id', 'headline', 'content', 'date_update', 'number_of_users_changed_rating', 'number_of_comments', 'users_changed_rating', 'rating', 'author', )
+        model = ArticleComment
+        fields = ('article', 'content', 'parent')
+
+
+class CreateNewsCommentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = NewsComment
+        fields = ('news', 'content', 'parent')
+
+
+class AbstractListCommentSerializer(serializers.ModelSerializer):
+    content = serializers.SerializerMethodField()
+    children = CommentRecursiveChildSerializer(many=True)
+
+    def get_content(self, obj):
+        if obj.deleted:
+            return None
+        return obj.content
     
+    class Meta:
+        abstract = True
+
+
+class ArticleListCommentSeriazlier(AbstractListCommentSerializer):
+
+    class Meta:
+        list_serializer_class = CommentOnlyParentListSerializer
+        model = ArticleComment
+        fields = ('id', 'article', 'content', 'date_create', 'date_update', 'deleted', 'children')
+
+
+class NewsListCommentSeriazlier(AbstractListCommentSerializer):
+
+    class Meta:
+        list_serializer_class = CommentOnlyParentListSerializer
+        model = NewsComment
+        fields = ('id', 'news', 'content', 'date_create', 'date_update', 'deleted', 'children')
+
+
+class ArticleSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='author.username', read_only=True)
+    number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
+    comments = ArticleListCommentSeriazlier(many=True, read_only=True)
+
+    class Meta:
+        model = Article
+        fields = ('id', 'headline', 'content', 'date_update', 'view_count', 'comments_count', 'comments',  'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
+
+
+class NewsSerializer(ArticleSerializer):
+    
+    author = serializers.CharField(source='author.username', read_only=True)
+    number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
+    comments = NewsListCommentSeriazlier(many=True, read_only=True)
+
+    class Meta:
+        model = News
+        fields = ('id', 'headline', 'content', 'date_update', 'view_count', 'comments_count', 'comments', 'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
+
 
 class ArticleCreateSerializer(serializers.ModelSerializer):
 
@@ -24,16 +85,14 @@ class ArticleCreateSerializer(serializers.ModelSerializer):
     }
 
     class Meta:
-        model = Post
+        model = Article
         fields = ('headline', 'content', )
     
 
     def create(self, validated_data):
-        is_article = True
-        is_news = False
         user = self.context['request'].user
         try:    
-            article = Post.objects.create(author=user, is_article=is_article, is_news=is_news, **validated_data)
+            article = Article.objects.create(author=user, **validated_data)
         except IntegrityError:
             self.fail('cannot_create_article')
 
@@ -47,26 +106,31 @@ class NewsCreateSerializer(serializers.ModelSerializer):
     }
 
     class Meta:
-        model = Post
+        model = News
         fields = ('headline', 'content', )
     
 
     def create(self, validated_data):
-        is_article = False
-        is_news = True
         user = self.context['request'].user
         try:    
-            news = Post.objects.create(author=user, is_article=is_article, is_news=is_news, **validated_data)
+            news = News.objects.create(author=user, **validated_data)
         except IntegrityError:
             self.fail('cannot_create_news')
 
         return news
 
 
-class UpdateSerializer(serializers.ModelSerializer):
+class ArticleUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Post
+        model = Article
+        fields = ('headline', 'content', )
+
+
+class NewsUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = News
         fields = ('headline', 'content', )
 
 
@@ -79,8 +143,7 @@ class ChangeRatingSerializer(serializers.ModelSerializer):
     }
 
     class Meta:
-        model = Post
-        fields = ('rating', )
+        abstract = True
 
 
     def validate_rating(self, value):
@@ -99,10 +162,25 @@ class ChangeRatingSerializer(serializers.ModelSerializer):
 
         rating_coefficient = new_user_rating*coefficient
         instance.rating += rating_coefficient
+
+        instance = self.perform_update(instance)
+        return instance
+
+    def perform_update(self, instance):
         instance.rating = round(instance.rating, 1)
         instance.save()
         return instance
 
 
-class NewsSerializer(ArticleSerializer):
-    pass
+class ArticleChangeRatingSerializer(ChangeRatingSerializer):
+    class Meta:
+        model = Article
+        fields = ('rating', )
+
+
+class NewsChangeRatingSerializer(ChangeRatingSerializer):
+    class Meta:
+        model = News
+        fields = ('rating', )
+
+

@@ -23,8 +23,8 @@ from .yasg import urlpatterns as doc_url
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    re_path('auth/', include('djoser.urls.jwt')),
-    re_path('api/?', include(router.urls)),
+    path('auth/', include('djoser.urls.jwt')),
+    re_path('api/v1/', include(router.urls)),
 ]
 
 urlpatterns += doc_url

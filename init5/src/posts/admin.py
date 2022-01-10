@@ -26,5 +26,5 @@ class CommentsAdmin(admin.ModelAdmin):
     list_filter = ('date_create', )
     search_fields = ('user', )
 
-admin.site.register(Comment, CommentsAdmin)
-admin.site.register(Post, PostsAdmin)
+# admin.site.register(Comment, CommentsAdmin)
+# admin.site.register(Post, PostsAdmin)

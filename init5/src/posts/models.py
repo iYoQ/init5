@@ -1,51 +1,35 @@
 from django.db import models
 from django.conf import settings
+from mptt.models import MPTTModel
+from mptt.fields import TreeForeignKey
 
-RATING_CHOOSE = (
-    ('1', 1),
-    ('2', 2),
-    ('3', 3),
-    ('4', 4),
-    ('5', 5),
-)
+from .abstract_models import AbstractComment, AbstractPost
 
 
-class Post(models.Model):
-    headline = models.CharField(max_length=200)
-    content = models.TextField()
-    date_create = models.DateTimeField(auto_now_add=True)
-    date_update = models.DateTimeField(auto_now=True)
-    number_of_comments = models.IntegerField(default=0)
-    rating = models.FloatField(choices=RATING_CHOOSE, default=0)
-    users_changed_rating = models.JSONField(default=dict, null=True)
-    is_article = models.BooleanField()
-    is_news = models.BooleanField()
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='post_author')
+class Article(AbstractPost):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
 
 
     class Meta:
-        verbose_name = 'Post'
-        verbose_name_plural = 'Posts'
+        verbose_name = 'Article'
+        verbose_name_plural = 'Articles'
         ordering = ('date_create', )
 
 
-    def __str__(self):
-        return f'{self.headline}'
+class News(AbstractPost):
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='news')
 
-    def count_users_changed_rating(self):
-        count_users = len(self.users_changed_rating.keys())
-        return count_users
-    
 
-class Comment(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post')
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comment_author')
-    content = models.TextField()
-    date_create = models.DateTimeField(auto_now_add=True)
-    date_update = models.DateTimeField(auto_now=True)
-    active = models.BooleanField(default=True)
-    rating = models.FloatField(choices=RATING_CHOOSE, default=0)
-    users_changed_rating = models.JSONField(default=dict, null=True)
+    class Meta:
+        verbose_name = 'News'
+        verbose_name_plural = 'News'
+        ordering = ('date_create', )
+
+
+class NewsComment(AbstractComment, MPTTModel):
+    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    parent = TreeForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
 
 
     class Meta:
@@ -55,4 +39,20 @@ class Comment(models.Model):
 
 
     def __str__(self):
-        return f'Comment by {self.user} on {self.post}.'
+        return f'Comment by {self.author} in {self.news}.'
+
+
+class ArticleComment(AbstractComment, MPTTModel):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    parent = TreeForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
+
+
+    # class Meta:
+    #     verbose_name = 'Comment'
+    #     verbose_name_plural = 'Comments'
+    #     ordering = ('date_create', )
+
+
+    def __str__(self):
+        return f'Comment by {self.author} in {self.article}.'

@@ -17,7 +17,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly
 )
 from .serializers import *
-from .permissions import UserIsOwnerOrAdmin
+from src.general.permissions import UserIsOwnerOrAdmin
 
 
 class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
@@ -39,11 +39,11 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         return super().get_permissions()
 
     def get_serializer_class(self):
-        if self.action in ['list', 'retrieve', 'me'] and self.request.user.is_superuser:
+        if self.action in ['list', 'retrieve', 'me'] and self.request.user.is_staff:
             return AdminSerializer
         elif self.action == 'registration':
             return UserRegistrationSerializer
-        elif self.action == 'partial_update' and self.request.user.is_superuser:
+        elif self.action == 'partial_update' and self.request.user.is_staff:
             return AdminUpdateUserSerializer
         elif self.action == 'me':
             if self.request.method == 'PATCH':
@@ -56,10 +56,9 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
     @action(['post'], detail=False)
     def registration(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            self.perform_create(serializer)
-            return Response('account created', status=status.HTTP_201_CREATED)
-        return Response('invalid data', status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     @action(['get', 'patch'], detail=False)
     def me(self, request, *args, **kwargs):    
