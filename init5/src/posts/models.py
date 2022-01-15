@@ -32,12 +32,6 @@ class NewsComment(AbstractComment, MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
 
 
-    class Meta:
-        verbose_name = 'Comment'
-        verbose_name_plural = 'Comments'
-        ordering = ('date_create', )
-
-
     def __str__(self):
         return f'Comment by {self.author} in {self.news}.'
 
@@ -46,12 +40,6 @@ class ArticleComment(AbstractComment, MPTTModel):
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     parent = TreeForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
-
-
-    # class Meta:
-    #     verbose_name = 'Comment'
-    #     verbose_name_plural = 'Comments'
-    #     ordering = ('date_create', )
 
 
     def __str__(self):

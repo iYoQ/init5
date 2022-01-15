@@ -1,5 +1,3 @@
-from __future__ import annotations
-from django.db.utils import IntegrityError
 from rest_framework import serializers
 from .service import check_or_add_users_changed_rating
 from .models import (
@@ -8,24 +6,21 @@ from .models import (
     ArticleComment,
     NewsComment
 )
-from src.general.serializers import (
+from ..general.serializers import (
     CommentRecursiveChildSerializer,
     CommentOnlyParentListSerializer
 )
 
 
-class CreateArticleCommentSerializer(serializers.ModelSerializer):
+########################################
+# Comments Serializers
+########################################
+
+class AbstractCreateCommentSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
 
     class Meta:
-        model = ArticleComment
-        fields = ('article', 'content', 'parent')
-
-
-class CreateNewsCommentSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = NewsComment
-        fields = ('news', 'content', 'parent')
+        abstract = True
 
 
 class AbstractListCommentSerializer(serializers.ModelSerializer):
@@ -39,6 +34,20 @@ class AbstractListCommentSerializer(serializers.ModelSerializer):
     
     class Meta:
         abstract = True
+
+
+class CreateArticleCommentSerializer(AbstractCreateCommentSerializer):
+
+    class Meta:
+        model = ArticleComment
+        fields = ('id', 'article', 'content', 'parent')
+
+
+class CreateNewsCommentSerializer(AbstractCreateCommentSerializer):
+
+    class Meta:
+        model = NewsComment
+        fields = ('id', 'news', 'content', 'parent')
 
 
 class ArticleListCommentSeriazlier(AbstractListCommentSerializer):
@@ -57,82 +66,9 @@ class NewsListCommentSeriazlier(AbstractListCommentSerializer):
         fields = ('id', 'news', 'content', 'date_create', 'date_update', 'deleted', 'children')
 
 
-class ArticleSerializer(serializers.ModelSerializer):
-    author = serializers.CharField(source='author.username', read_only=True)
-    number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
-    comments = ArticleListCommentSeriazlier(many=True, read_only=True)
-
-    class Meta:
-        model = Article
-        fields = ('id', 'headline', 'content', 'date_update', 'view_count', 'comments_count', 'comments',  'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
-
-
-class NewsSerializer(ArticleSerializer):
-    
-    author = serializers.CharField(source='author.username', read_only=True)
-    number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
-    comments = NewsListCommentSeriazlier(many=True, read_only=True)
-
-    class Meta:
-        model = News
-        fields = ('id', 'headline', 'content', 'date_update', 'view_count', 'comments_count', 'comments', 'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
-
-
-class ArticleCreateSerializer(serializers.ModelSerializer):
-
-    default_error_messages = {
-        'cannot_create_article': 'Unable to create article.'
-    }
-
-    class Meta:
-        model = Article
-        fields = ('headline', 'content', )
-    
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        try:    
-            article = Article.objects.create(author=user, **validated_data)
-        except IntegrityError:
-            self.fail('cannot_create_article')
-
-        return article
-
-
-class NewsCreateSerializer(serializers.ModelSerializer):
-
-    default_error_messages = {
-        'cannot_create_news': 'Unable to create news.'
-    }
-
-    class Meta:
-        model = News
-        fields = ('headline', 'content', )
-    
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        try:    
-            news = News.objects.create(author=user, **validated_data)
-        except IntegrityError:
-            self.fail('cannot_create_news')
-
-        return news
-
-
-class ArticleUpdateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Article
-        fields = ('headline', 'content', )
-
-
-class NewsUpdateSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = News
-        fields = ('headline', 'content', )
-
+########################################
+# Change Rating Serializers
+########################################
 
 class ChangeRatingSerializer(serializers.ModelSerializer):
     rating = serializers.FloatField()
@@ -172,15 +108,65 @@ class ChangeRatingSerializer(serializers.ModelSerializer):
         return instance
 
 
+########################################
+# Abstract Articles and News Seriazlier
+########################################
+
+class AbstractPostSerializer(serializers.ModelSerializer):
+    author = serializers.CharField(source='author.username', read_only=True)
+    number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
+
+    class Meta:
+        abstract = True
+
+
+########################################
+# Article Serializers
+########################################
+
+class ArticleSerializer(AbstractPostSerializer):
+    comments = ArticleListCommentSeriazlier(many=True, read_only=True)
+
+    class Meta:
+        model = Article
+        fields = ('id', 'headline', 'content', 'date_update', 'view_count', 'comments_count', 'comments',  'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
+
+
+class ArticleCreateUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Article
+        fields = ('headline', 'content', )
+
+
 class ArticleChangeRatingSerializer(ChangeRatingSerializer):
+
     class Meta:
         model = Article
         fields = ('rating', )
 
 
+########################################
+# News Seriazliers
+########################################
+
+class NewsSerializer(AbstractPostSerializer):
+    comments = NewsListCommentSeriazlier(many=True, read_only=True)
+
+    class Meta:
+        model = News
+        fields = ('id', 'headline', 'content', 'date_update', 'view_count', 'comments_count', 'comments', 'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
+
+
+class NewsCreateUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = News
+        fields = ('headline', 'content', )
+
+
 class NewsChangeRatingSerializer(ChangeRatingSerializer):
+
     class Meta:
         model = News
         fields = ('rating', )
-
-

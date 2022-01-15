@@ -1,10 +1,10 @@
-from django.db.models import fields
 from rest_framework import serializers
 from rest_framework.settings import api_settings
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
 from django.db import IntegrityError, transaction
 from .models import User
+from ..general.serializers import CurrentPasswordSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -79,23 +79,6 @@ class AdminUpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('is_staff', 'is_active', 'description', 'is_newsmaker', 'role')
-
-
-class CurrentPasswordSerializer(serializers.Serializer):
-    '''Request password for some changes
-    '''
-
-    current_password = serializers.CharField()
-
-    default_error_messages = {
-        'invalid_password': 'Invalid password'
-    }
-
-    def validate_current_password(self, value):
-        is_password_valid = self.context['request'].user.check_password(value)
-        if is_password_valid:
-            return value
-        self.fail('invalid_password')
 
 
 class AdminDeleteSerializer(CurrentPasswordSerializer):

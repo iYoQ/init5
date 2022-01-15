@@ -24,18 +24,16 @@ from .models import (
     ArticleComment,
     NewsComment
 )
-from src.users.serializers import AdminDeleteSerializer
+from ..users.serializers import AdminDeleteSerializer
 from .serializers import *
 
 
-class PostViewSet(ModelViewSet):
+class PostViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
 
     def get_permissions(self):
-        if self.action == 'create':
-            self.permission_classes = [custom_permissions.ReadOnly]
-        elif self.action in ['create_article', 'change_rating']:
+        if self.action in ['create_article', 'change_rating']:
             self.permission_classes = [IsAuthenticated]
         elif self.action == 'create_news':
             self.permission_classes = [custom_permissions.UserIsNewsmaker]
@@ -48,9 +46,9 @@ class PostViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'create_article':
-            return ArticleCreateSerializer
+            return ArticleCreateUpdateSerializer
         elif self.action == 'create_news':
-            return NewsCreateSerializer
+            return NewsCreateUpdateSerializer
         elif self.action == 'destroy':
             return AdminDeleteSerializer
         
@@ -59,6 +57,15 @@ class PostViewSet(ModelViewSet):
     @action(['patch'], detail=True)
     def change_rating(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
+    
+    def create_post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
 
 
 class ArticleViewSet(PostViewSet):
@@ -67,14 +74,14 @@ class ArticleViewSet(PostViewSet):
 
     def get_serializer_class(self):
         if self.action == 'partial_update':
-            return ArticleUpdateSerializer
+            return ArticleCreateUpdateSerializer
         elif self.action == 'change_rating':
             return ArticleChangeRatingSerializer
         return super().get_serializer_class()
 
     @action(['post'], detail=False)
     def create_article(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        return self.create_post(request, *args, **kwargs)
 
 
 class NewsViewSet(PostViewSet):
@@ -83,14 +90,14 @@ class NewsViewSet(PostViewSet):
 
     def get_serializer_class(self):
         if self.action == 'partial_update':
-            return NewsUpdateSerializer
+            return NewsCreateUpdateSerializer
         elif self.action == 'change_rating':
             return NewsChangeRatingSerializer
         return super().get_serializer_class()
 
     @action(['post'], detail=False)
     def create_news(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+        return self.create_post(request, *args, **kwargs)
 
 
 class CommentViewSet(ModelViewSet):

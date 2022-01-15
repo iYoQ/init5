@@ -16,8 +16,8 @@ from rest_framework.permissions import (
     IsAuthenticated, 
     IsAuthenticatedOrReadOnly
 )
+from ..general.permissions import UserIsOwnerOrAdmin
 from .serializers import *
-from src.general.permissions import UserIsOwnerOrAdmin
 
 
 class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
