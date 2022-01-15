@@ -1,11 +1,8 @@
 from rest_framework import routers
 from src.users.viewsets import UserViewSet
-from src.posts.viewsets import (
-    ArticleViewSet, 
-    NewsViewSet,
-    ArticleCommentViewSet,
-    NewsCommentViewSet
-)
+from src.news.viewsets import NewsViewSet
+from src.articles.viewsets import ArticleViewSet
+from src.comments.viewsets import ArticleCommentViewSet, NewsCommentViewSet
 
 
 router = routers.DefaultRouter()

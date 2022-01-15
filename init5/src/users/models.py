@@ -20,7 +20,7 @@ class UserManager(BaseUserManager):
             username=username, 
             **extra_fields)
         user.set_password(password)
-        user.url = f'http://127.0.0.1:8000/api/users/{username}/' 
+        user.url = f'http://localhost:8000/api/v1/users/{username}/' 
         user.save(using=self._db)
         return user
 

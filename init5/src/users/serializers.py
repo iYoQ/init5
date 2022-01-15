@@ -79,9 +79,3 @@ class AdminUpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('is_staff', 'is_active', 'description', 'is_newsmaker', 'role')
-
-
-class AdminDeleteSerializer(CurrentPasswordSerializer):
-    '''Delete content
-    '''
-    pass

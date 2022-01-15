@@ -17,6 +17,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly
 )
 from ..general.permissions import UserIsOwnerOrAdmin
+from ..general.serializers import AdminDeleteSerializer
 from .serializers import *
 
 

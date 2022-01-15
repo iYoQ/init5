@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from ..articles.models import Category
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class CommentOnlyParentListSerializer(serializers.ListSerializer):
@@ -11,6 +13,21 @@ class CommentRecursiveChildSerializer(serializers.Serializer):
     def to_representation(self, instance):
         serializer = self.parent.parent.__class__(instance, context=self.context)
         return serializer.data
+
+
+class CategoryRelatedField(serializers.RelatedField):
+    default_error_messages = {
+        'not_exist_category': 'Not exist category.'
+    } 
+    def to_representation(self, value):
+        return str(value)
+
+    def to_internal_value(self, data):
+        try:
+            category = Category.objects.get(name=data)
+        except ObjectDoesNotExist:
+            self.fail('not_exist_category')
+        return category
 
 
 class CurrentPasswordSerializer(serializers.Serializer):
@@ -28,3 +45,9 @@ class CurrentPasswordSerializer(serializers.Serializer):
         if is_password_valid:
             return value
         self.fail('invalid_password')
+
+
+class AdminDeleteSerializer(CurrentPasswordSerializer):
+    '''Delete content
+    '''
+    pass

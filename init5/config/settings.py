@@ -41,9 +41,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'src.users.apps.UsersConfig',
-    'src.posts.apps.PostsConfig',
+    'src.articles.apps.ArticlesConfig',
+    'src.news.apps.NewsConfig',
+    'src.comments.apps.CommentsConfig',
 
     'rest_framework',
+    'django_filters',
     'djoser',
     'rest_framework_simplejwt',
     'drf_yasg',
@@ -149,18 +152,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
 
-RATING_CHOOSE = (
-    ('1', 1),
-    ('2', 2),
-    ('3', 3),
-    ('4', 4),
-    ('5', 5),
-)
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
 SIMPLE_JWT = {
