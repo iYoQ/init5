@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from ..articles.models import Category
 from django.core.exceptions import ObjectDoesNotExist
+from .service import change_or_add_users_changed_rating
 
 
 class CommentOnlyParentListSerializer(serializers.ListSerializer):
@@ -51,3 +52,32 @@ class AdminDeleteSerializer(CurrentPasswordSerializer):
     '''Delete content
     '''
     pass
+
+class ChangeRatingSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField()
+
+    default_error_messages = {
+        'invalid_rating_value': 'Invalid rating value',
+        'alredy_exists': 'Alredy exists'
+    }
+
+
+    class Meta:
+        abstract = True
+
+    def validate_rating(self, value):
+        pos_value = -1
+        neg_value = 1
+        if value not in [pos_value, neg_value]:
+            self.fail('invalid_rating_value')
+        return value
+
+    def update(self, instance, validated_data):
+        change_or_add_users_changed_rating(self, instance, validated_data)
+
+        instance = self.perform_update(instance)
+        return instance
+
+    def perform_update(self, instance):
+        instance.save()
+        return instance

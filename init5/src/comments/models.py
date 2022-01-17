@@ -12,7 +12,7 @@ class AbstractComment(models.Model):
     date_update = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
-    rating = models.FloatField(default=0)
+    rating = models.IntegerField(default=0)
     users_changed_rating = models.JSONField(default=dict, null=True)
 
 

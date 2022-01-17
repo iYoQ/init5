@@ -8,6 +8,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly
 )
 from rest_framework.mixins import (
+    CreateModelMixin,
     RetrieveModelMixin, 
     UpdateModelMixin, 
     DestroyModelMixin, 
@@ -17,25 +18,28 @@ from rest_framework.mixins import (
 import src.general.permissions as custom_permissions
 from .models import News
 from ..general.serializers import AdminDeleteSerializer
+from ..general.paginations import PostPaginaton
 from .serializers import *
 
 
-class NewsViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
+class NewsViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
     queryset = News.objects.all()
     serializer_class = NewsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter]
+    pagination_class = PostPaginaton
     search_fields = ['headline']
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
 
-    def get_permissions(self):
+    def get_queryset(self):
         if self.request.user.is_staff:
-            if self.action == 'list':
-                return AdminListSerializer
-            return AdminDetailSerializer
-        elif self.action == 'change_rating':
-            self.permission_classes = [IsAuthenticated]
-        elif self.action == 'create_news':
+            queryset = News.objects.all()
+        else:
+            queryset = News.objects.filter(active=True)
+        return queryset
+
+    def get_permissions(self):
+        if self.action == 'create':
             self.permission_classes = [custom_permissions.UserIsNewsmaker]
         elif self.action == 'partial_update':
             self.permission_classes = [custom_permissions.UserIsPostOwnerOrAdmin]
@@ -45,27 +49,22 @@ class NewsViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         return super().get_permissions()
 
     def get_serializer_class(self):
-        if self.action in ['create_news', 'partial_update']:
+        if self.request.user.is_staff:
+            if self.action == 'list':
+                return AdminListSerializer
+            if self.action == 'retrieve':
+                return AdminDetailSerializer
+            if self.action == 'partial_update':
+                return AdminUpdateSerializer
+
+        elif self.action in ['create', 'partial_update']:
             return NewsCreateUpdateSerializer
         elif self.action == 'destroy':
             return AdminDeleteSerializer
-        elif self.action == 'change_rating':
-            return NewsChangeRatingSerializer
         elif self.action == 'list':
             return NewsListSerializer
         
         return self.serializer_class
-    
-    @action(['patch'], detail=True)
-    def change_rating(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-    
-    @action(['post'], detail=False)
-    def create_news(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

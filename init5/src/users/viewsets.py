@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from django.contrib.auth import logout
@@ -18,16 +18,26 @@ from rest_framework.permissions import (
 )
 from ..general.permissions import UserIsOwnerOrAdmin
 from ..general.serializers import AdminDeleteSerializer
+from ..general.paginations import UserPaginaton
 from .serializers import *
 
 
 class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    pagination_class = UserPaginaton
+    filter_backends = [filters.SearchFilter]
     permission_classes = [AllowAny]
+    search_fields = ['username']
     lookup_field = 'username'
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
 
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            queryset = User.objects.all()
+        else:
+            queryset = User.objects.filter(is_active=True)
+        return queryset
 
     def get_permissions(self):
         if self.action == 'partial_update':
@@ -44,7 +54,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
             return AdminSerializer
         elif self.action == 'registration':
             return UserRegistrationSerializer
-        elif self.action == 'partial_update' and self.request.user.is_staff:
+        elif self.action == 'partial_update':
             return AdminUpdateUserSerializer
         elif self.action == 'me':
             if self.request.method == 'PATCH':

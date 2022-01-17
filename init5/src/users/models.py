@@ -65,12 +65,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     birth_date = models.DateField(null=True, blank=True)
     avatar = models.ImageField(upload_to='user/avatar/', blank=True, null=True)
     url = models.URLField(null=True)
+    rating = models.IntegerField(default=0)
     role = models.CharField(max_length=20, choices=ROLE, default=USER, null=True, blank=True)
     date_registration = models.DateTimeField(verbose_name='date registration', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_newsmaker = models.BooleanField(default=False)
+    banned = models.BooleanField(default=False)
     hide_email = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'email'

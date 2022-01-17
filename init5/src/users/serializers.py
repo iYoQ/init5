@@ -4,17 +4,15 @@ from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
 from django.db import IntegrityError, transaction
 from .models import User
-from ..general.serializers import CurrentPasswordSerializer
 
 
 class UserSerializer(serializers.ModelSerializer):
     ''' Show user profile
     '''
 
-
     class Meta:
         model = User
-        fields = ('email', 'username', 'url', 'date_registration', 'last_login', 'role', 'description', 'gender', 'birth_date', 'is_newsmaker')
+        fields = ('email', 'username', 'url', 'rating', 'date_registration', 'last_login', 'role', 'description', 'gender', 'birth_date', 'is_newsmaker')
         read_only_fields = ('username', 'role', 'is_newsmaker')
 
 
@@ -71,11 +69,11 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'description', 'birth_date', 'gender', )
+        fields = ('description', 'birth_date', 'gender', )
 
 
 class AdminUpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('is_staff', 'is_active', 'description', 'is_newsmaker', 'role')
+        fields = ('is_staff', 'description', 'is_newsmaker', 'role', 'is_active')

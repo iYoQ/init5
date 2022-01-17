@@ -6,10 +6,11 @@ from .models import (
 from ..general.serializers import (
     CommentRecursiveChildSerializer,
     CommentOnlyParentListSerializer,
+    ChangeRatingSerializer
 )
 
 
-class AbstractCreateCommentSerializer(serializers.ModelSerializer):
+class AbstractCommentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -29,14 +30,14 @@ class AbstractListCommentSerializer(serializers.ModelSerializer):
         abstract = True
 
 
-class CreateArticleCommentSerializer(AbstractCreateCommentSerializer):
+class ArticleCommentSerializer(AbstractCommentSerializer):
 
     class Meta:
         model = ArticleComment
         fields = ('id', 'article', 'content', 'parent')
 
 
-class CreateNewsCommentSerializer(AbstractCreateCommentSerializer):
+class NewsCommentSerializer(AbstractCommentSerializer):
 
     class Meta:
         model = NewsComment
@@ -48,7 +49,7 @@ class ArticleListCommentSeriazlier(AbstractListCommentSerializer):
     class Meta:
         list_serializer_class = CommentOnlyParentListSerializer
         model = ArticleComment
-        fields = ('id', 'article', 'content', 'date_create', 'date_update', 'deleted', 'children')
+        fields = ('id', 'article', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
 
 
 class NewsListCommentSeriazlier(AbstractListCommentSerializer):
@@ -56,4 +57,18 @@ class NewsListCommentSeriazlier(AbstractListCommentSerializer):
     class Meta:
         list_serializer_class = CommentOnlyParentListSerializer
         model = NewsComment
-        fields = ('id', 'news', 'content', 'date_create', 'date_update', 'deleted', 'children')
+        fields = ('id', 'news', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
+
+
+class ArticleCommentChangeRatingSerializer(ChangeRatingSerializer):
+
+    class Meta:
+        model = ArticleComment
+        fields = ('rating', )
+
+
+class NewsCommentChangeRatingSerializer(ChangeRatingSerializer):
+
+    class Meta:
+        model = NewsComment
+        fields = ('rating', )
