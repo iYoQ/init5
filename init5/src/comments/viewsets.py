@@ -22,14 +22,6 @@ class CommentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
 
-    def get_queryset(self):
-        model = self.model
-        if self.request.user.is_staff:
-            queryset = model.objects.all()
-        else:
-            queryset = model.objects.filter(active=True)
-        return queryset
-
     def get_permissions(self):
         if self.action == 'change_rating':
             self.permission_classes = [IsAuthenticated]
@@ -55,21 +47,28 @@ class CommentViewSet(ModelViewSet):
 class ArticleCommentViewSet(CommentViewSet):
     serializer_class = ArticleCommentSerializer
 
-    @property
-    def model(self):
-        return ArticleComment
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            queryset = ArticleComment.objects.filter(article=self.kwargs['article_id'])
+        else:
+            queryset = ArticleComment.objects.filter(article=self.kwargs['article_id'], active=True)
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'change_rating':
             return ArticleCommentChangeRatingSerializer
         return super().get_serializer_class()
+    
 
 class NewsCommentViewSet(CommentViewSet):
     serializer_class = NewsCommentSerializer
 
-    @property
-    def model(self):
-        return NewsComment
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            queryset = NewsComment.objects.filter(news=self.kwargs['news_id'])
+        else:
+            queryset = NewsComment.objects.filter(news=self.kwargs['news_id'], active=True)
+        return queryset
 
     def get_serializer_class(self):
         if self.action == 'change_rating':

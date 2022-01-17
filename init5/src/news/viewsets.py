@@ -1,6 +1,4 @@
-from rest_framework import status, filters
-from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework import filters
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import (
     IsAdminUser, 
@@ -23,7 +21,6 @@ from .serializers import *
 
 
 class NewsViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
-    queryset = News.objects.all()
     serializer_class = NewsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter]

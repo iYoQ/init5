@@ -25,6 +25,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('auth/', include('djoser.urls.jwt')),
     re_path('api/v1/', include(router.urls)),
+
 ]
 
 urlpatterns += doc_url

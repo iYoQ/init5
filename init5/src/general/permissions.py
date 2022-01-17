@@ -25,7 +25,7 @@ class UserIsPostOwnerOrAdmin(IsAuthenticated):
 class UserIsNewsmaker(IsAuthenticated):
     def has_permission(self, request, view):
         user = request.user
-        return user.is_newsmaker
+        return user.is_authenticated and user.is_newsmaker
 
 
 class ReadOnly(IsAuthenticated):

@@ -1,4 +1,4 @@
-from rest_framework import status, filters
+from rest_framework import filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.viewsets import GenericViewSet
@@ -27,7 +27,7 @@ class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Lis
     serializer_class = ArticleSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     pagination_class = PostPaginaton
-    filter_fields = ['category', 'rating']
+    filter_fields = ['category']
     search_fields = ['headline']
     permission_classes = [IsAuthenticatedOrReadOnly]
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
@@ -62,7 +62,7 @@ class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Lis
             return AdminDeleteSerializer
         elif self.action == 'change_rating':
             return ArticleChangeRatingSerializer
-        elif self.action == 'list':
+        elif self.action in ['list', 'top']:
             return ArticleListSerializer
         
         return self.serializer_class
@@ -71,7 +71,11 @@ class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Lis
     def change_rating(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
     
+    @action(['get'], detail=False)
+    def top(self, request, *args, **kwargs):
+        queryset = self.get_queryset().order_by('-rating')[:20]
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-    
-    

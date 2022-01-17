@@ -15,7 +15,7 @@ class ArticleListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = ('id', 'headline', 'category', 'content', 'date_update', 'view_count', 'comments_count', 'rating', 'number_of_users_changed_rating', 'author')
+        fields = ('id', 'headline', 'category', 'content', 'date_create', 'date_update', 'view_count', 'comments_count', 'rating', 'number_of_users_changed_rating', 'author')
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -27,7 +27,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = ('id', 'headline', 'content', 'category', 'date_update', 'view_count', 'comments_count', 'comments',  'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
+        fields = ('id', 'headline', 'content', 'category', 'date_create', 'date_update', 'view_count', 'comments_count', 'comments',  'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
 
 
 class ArticleCreateUpdateSerializer(serializers.ModelSerializer):
@@ -35,7 +35,7 @@ class ArticleCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = ('headline', 'category', 'content', 'date_update', )
+        fields = ('headline', 'category', 'content', 'date_create', 'date_update', )
 
 
 class ArticleChangeRatingSerializer(ChangeRatingSerializer):
@@ -68,4 +68,4 @@ class AdminUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        fields = ('headline', 'content', 'active', 'moderation', 'category', 'date_update', )
+        fields = ('headline', 'content', 'active', 'moderation', 'category', 'date_create', 'date_update', )

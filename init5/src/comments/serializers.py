@@ -12,36 +12,50 @@ from ..general.serializers import (
 
 class AbstractCommentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
-
-    class Meta:
-        abstract = True
-
-
-class AbstractListCommentSerializer(serializers.ModelSerializer):
     content = serializers.SerializerMethodField()
-    children = CommentRecursiveChildSerializer(many=True)
 
     def get_content(self, obj):
         if obj.deleted:
             return None
         return obj.content
+
+    class Meta:
+        abstract = True
+
+
+class AbstractListCommentSerializer(AbstractCommentSerializer):
+    children = CommentRecursiveChildSerializer(many=True)
     
     class Meta:
         abstract = True
 
 
 class ArticleCommentSerializer(AbstractCommentSerializer):
+    default_error_messages = {
+        'cannot_create_comment': 'Cannot create comment, wrong data.'
+    }
+
 
     class Meta:
         model = ArticleComment
-        fields = ('id', 'article', 'content', 'parent')
+        fields = ('id', 'article', 'rating', 'content', 'deleted', 'parent')
+    
+    def create(self, validated_data):
+        if not validated_data.get('parent') or validated_data['parent'].article == validated_data['article']:
+            return self.Meta.model.objects.create(**validated_data)
+        return self.fail('cannot_create_comment')
 
 
 class NewsCommentSerializer(AbstractCommentSerializer):
 
     class Meta:
         model = NewsComment
-        fields = ('id', 'news', 'content', 'parent')
+        fields = ('id', 'news', 'rating', 'content', 'deleted', 'parent')
+    
+    def create(self, validated_data):
+        if not validated_data.get('parent') or validated_data['parent'].news == validated_data['news']:
+            return self.Meta.model.objects.create(**validated_data)
+        return self.fail('cannot_create_comment')
 
 
 class ArticleListCommentSeriazlier(AbstractListCommentSerializer):
