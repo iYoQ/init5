@@ -13,13 +13,13 @@ class CustomResponsePagination(CursorPagination):
         })
 
 
-class UserPaginaton(CustomResponsePagination):
+class UserPagination(CustomResponsePagination):
     page_size = 20
     cursor_query_param = 'page'
     ordering = 'rating'
 
 
-class PostPaginaton(CustomResponsePagination):
+class PostPagination(CustomResponsePagination):
     page_size = 10
     cursor_query_param = 'page'
     ordering = '-date_create'

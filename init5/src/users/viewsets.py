@@ -19,14 +19,14 @@ from rest_framework.permissions import (
 from ..articles.serializers import ArticleListSerializer
 from ..general.permissions import UserIsOwnerOrAdmin
 from ..general.serializers import AdminDeleteSerializer
-from ..general.paginations import UserPaginaton
+from ..general.paginations import UserPagination
 from .serializers import *
 
 
 class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    pagination_class = UserPaginaton
+    pagination_class = UserPagination
     filter_backends = [filters.SearchFilter]
     permission_classes = [AllowAny]
     search_fields = ['username']

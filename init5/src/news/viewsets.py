@@ -16,7 +16,7 @@ from rest_framework.mixins import (
 import src.general.permissions as custom_permissions
 from .models import News
 from ..general.serializers import AdminDeleteSerializer
-from ..general.paginations import PostPaginaton
+from ..general.paginations import PostPagination
 from .serializers import *
 
 
@@ -24,7 +24,7 @@ class NewsViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destro
     serializer_class = NewsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter]
-    pagination_class = PostPaginaton
+    pagination_class = PostPagination
     search_fields = ['headline']
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
 

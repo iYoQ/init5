@@ -19,14 +19,14 @@ from rest_framework.mixins import (
 import src.general.permissions as custom_permissions
 from .models import Article
 from ..general.serializers import AdminDeleteSerializer
-from ..general.paginations import PostPaginaton
+from ..general.paginations import PostPagination
 from .serializers import *
 
 
 class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, ListModelMixin, GenericViewSet):
     serializer_class = ArticleSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    pagination_class = PostPaginaton
+    pagination_class = PostPagination
     filter_fields = ['category']
     search_fields = ['headline']
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -85,7 +85,7 @@ class UserArticlesList(ListModelMixin, GenericViewSet):
     serializer_class = ArticleListSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    pagination_class = PostPaginaton
+    pagination_class = PostPagination
 
     def get_queryset(self):
         return Article.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
