@@ -13,12 +13,6 @@ from ..general.serializers import (
 class AbstractCommentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     author = serializers.CharField(source='author.username', read_only=True)
-    content = serializers.SerializerMethodField()
-
-    def get_content(self, obj):
-        if obj.deleted:
-            return None
-        return obj.content
 
     class Meta:
         abstract = True
@@ -27,6 +21,12 @@ class AbstractCommentSerializer(serializers.ModelSerializer):
 class AbstractListCommentSerializer(AbstractCommentSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
     children = CommentRecursiveChildSerializer(many=True)
+    content = serializers.SerializerMethodField()
+
+    def get_content(self, obj):
+        if obj.deleted:
+            return None
+        return obj.content
     
     class Meta:
         abstract = True
