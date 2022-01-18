@@ -79,3 +79,13 @@ class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Lis
     
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class UserArticlesList(ListModelMixin, GenericViewSet):
+    serializer_class = ArticleListSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    pagination_class = PostPaginaton
+
+    def get_queryset(self):
+        return Article.objects.filter(author__username=self.kwargs.get('username')).select_related('author')

@@ -1,5 +1,5 @@
 from django.apps import AppConfig
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -49,9 +49,9 @@ class ArticleCommentViewSet(CommentViewSet):
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            queryset = ArticleComment.objects.filter(article=self.kwargs['article_id'])
+            queryset = ArticleComment.objects.filter(article=self.kwargs.get('article_id'))
         else:
-            queryset = ArticleComment.objects.filter(article=self.kwargs['article_id'], active=True)
+            queryset = ArticleComment.objects.filter(article=self.kwargs.get('article_id'), active=True)
         return queryset
 
     def get_serializer_class(self):
@@ -65,12 +65,23 @@ class NewsCommentViewSet(CommentViewSet):
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            queryset = NewsComment.objects.filter(news=self.kwargs['news_id'])
+            queryset = NewsComment.objects.filter(news=self.kwargs.get('news_id'))
         else:
-            queryset = NewsComment.objects.filter(news=self.kwargs['news_id'], active=True)
+            queryset = NewsComment.objects.filter(news=self.kwargs.get('news_id'), active=True)
         return queryset
 
     def get_serializer_class(self):
         if self.action == 'change_rating':
             return NewsCommentChangeRatingSerializer
         return super().get_serializer_class()
+
+
+class UserCommentsList(ListModelMixin, GenericViewSet):
+    serializer_class = UserCommentsSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        qs_articles = ArticleComment.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
+        qs_news = NewsComment.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
+        qs_union = qs_articles.union(qs_news)
+        return qs_union
