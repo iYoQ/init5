@@ -5,6 +5,9 @@ from django.contrib.auth.models import (
     PermissionsMixin, 
     BaseUserManager,
 )
+from ..articles.models import Article
+from ..news.models import News
+from ..comments.models import ArticleComment, NewsComment
 
 
 class UserManager(BaseUserManager):
@@ -20,7 +23,6 @@ class UserManager(BaseUserManager):
             username=username, 
             **extra_fields)
         user.set_password(password)
-        user.url = f'http://localhost:8000/api/v1/users/{username}/' 
         user.save(using=self._db)
         return user
 
@@ -64,7 +66,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     gender = models.CharField(max_length=10, choices=GENDER, null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     avatar = models.ImageField(upload_to='user/avatar/', blank=True, null=True)
-    url = models.URLField(null=True)
     rating = models.IntegerField(default=0)
     role = models.CharField(max_length=20, choices=ROLE, default=USER, null=True, blank=True)
     date_registration = models.DateTimeField(verbose_name='date registration', auto_now_add=True)
@@ -86,6 +87,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __call__(self):
         return self
 
+    def post_count(self):
+        qs_articles = Article.objects.filter(author__username=self.username).values_list('id')
+        qs_news = News.objects.filter(author__username=self.username).values_list('id')
+        qs_posts = qs_articles.union(qs_news)
+        return qs_posts.count()
+
+    def comments_count(self):
+        qs_articles = ArticleComment.objects.filter(author__username=self.username)
+        qs_news = NewsComment.objects.filter(author__username=self.username)
+        qs_comments = qs_articles.union(qs_news)
+        return qs_comments.count()
+    
+    # def get_absolute_url(self):
+    #     pass
     
     class Meta:
         verbose_name = 'User'

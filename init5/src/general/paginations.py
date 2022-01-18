@@ -16,7 +16,7 @@ class CustomResponsePagination(CursorPagination):
 class UserPagination(CustomResponsePagination):
     page_size = 20
     cursor_query_param = 'page'
-    ordering = 'rating'
+    ordering = '-rating'
 
 
 class PostPagination(CustomResponsePagination):

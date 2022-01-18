@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 
 
 class Category(models.Model):
@@ -38,4 +39,7 @@ class Article(models.Model):
     
     def get_comments_count(self):
         return self.comments.count()
+    
+    def get_absolute_url(self):
+        return reverse('articles-detail', kwargs={'pk': self.pk})
 

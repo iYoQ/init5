@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 
 
 class News(models.Model):
@@ -24,3 +25,6 @@ class News(models.Model):
     
     def get_comments_count(self):
         return self.comments.count()
+    
+    def get_absolute_url(self):
+        return reverse('news-detail', kwargs={'pk': self.pk})

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from ..articles.models import Category
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from .service import change_or_add_users_changed_rating
 

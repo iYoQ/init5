@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 from .models import (
     ArticleComment,
@@ -40,10 +41,10 @@ class ArticleCommentSerializer(AbstractCommentSerializer):
 
     class Meta:
         model = ArticleComment
-        fields = ('id', 'article', 'author', 'content', 'rating', 'deleted', 'parent')
+        fields = ('id', 'post', 'author', 'content', 'rating', 'deleted', 'parent')
     
     def create(self, validated_data):
-        if not validated_data.get('parent') or validated_data['parent'].article == validated_data['article']:
+        if not validated_data.get('parent') or validated_data['parent'].post == validated_data['post']:
             return self.Meta.model.objects.create(**validated_data)
         return self.fail('cannot_create_comment')
 
@@ -52,10 +53,10 @@ class NewsCommentSerializer(AbstractCommentSerializer):
 
     class Meta:
         model = NewsComment
-        fields = ('id', 'news', 'author', 'rating', 'content', 'deleted', 'parent')
+        fields = ('id', 'post', 'author', 'rating', 'content', 'deleted', 'parent')
     
     def create(self, validated_data):
-        if not validated_data.get('parent') or validated_data['parent'].news == validated_data['news']:
+        if not validated_data.get('parent') or validated_data['parent'].post == validated_data['post']:
             return self.Meta.model.objects.create(**validated_data)
         return self.fail('cannot_create_comment')
 
@@ -65,7 +66,7 @@ class ArticleListCommentSeriazlier(AbstractListCommentSerializer):
     class Meta:
         list_serializer_class = CommentOnlyParentListSerializer
         model = ArticleComment
-        fields = ('id', 'article', 'author', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
+        fields = ('id', 'post', 'author', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
 
 
 class NewsListCommentSeriazlier(AbstractListCommentSerializer):
@@ -73,7 +74,7 @@ class NewsListCommentSeriazlier(AbstractListCommentSerializer):
     class Meta:
         list_serializer_class = CommentOnlyParentListSerializer
         model = NewsComment
-        fields = ('id', 'news', 'author', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
+        fields = ('id', 'post', 'author', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
 
 
 class ArticleCommentChangeRatingSerializer(ChangeRatingSerializer):
@@ -95,3 +96,4 @@ class UserCommentsSerializer(serializers.Serializer):
     content = serializers.CharField()
     rating = serializers.IntegerField()
     date_create = serializers.DateTimeField()
+    post_url = serializers.URLField(source='get_post_url')

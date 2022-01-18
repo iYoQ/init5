@@ -49,9 +49,9 @@ class ArticleCommentViewSet(CommentViewSet):
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            queryset = ArticleComment.objects.filter(article=self.kwargs.get('article_id'))
+            queryset = ArticleComment.objects.filter(post=self.kwargs.get('article_id'))
         else:
-            queryset = ArticleComment.objects.filter(article=self.kwargs.get('article_id'), active=True)
+            queryset = ArticleComment.objects.filter(post=self.kwargs.get('article_id'), active=True)
         return queryset
 
     def get_serializer_class(self):
@@ -65,9 +65,9 @@ class NewsCommentViewSet(CommentViewSet):
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            queryset = NewsComment.objects.filter(news=self.kwargs.get('news_id'))
+            queryset = NewsComment.objects.filter(post=self.kwargs.get('news_id'))
         else:
-            queryset = NewsComment.objects.filter(news=self.kwargs.get('news_id'), active=True)
+            queryset = NewsComment.objects.filter(post=self.kwargs.get('news_id'), active=True)
         return queryset
 
     def get_serializer_class(self):
@@ -81,7 +81,7 @@ class UserCommentsList(ListModelMixin, GenericViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        qs_articles = ArticleComment.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
-        qs_news = NewsComment.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
-        qs_union = qs_articles.union(qs_news)
-        return qs_union
+        qs_articles_comments = ArticleComment.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
+        qs_news_comments = NewsComment.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
+        qs_comments = qs_articles_comments.union(qs_news_comments)
+        return qs_comments
