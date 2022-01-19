@@ -14,19 +14,15 @@ class AbstractComment(models.Model):
     active = models.BooleanField(default=True)
     rating = models.IntegerField(default=0)
     users_changed_rating = models.JSONField(default=dict, null=True)
+    post_url = models.URLField(null=True)
 
 
     class Meta:
         abstract = True
-    
-    def get_post_url(self):
-        return self.post.get_absolute_url()
-        # qs = self._meta.model.objects.get(pk=self.pk)
-        # return qs.post.get_absolute_url()
 
 
 class ArticleComment(AbstractComment, MPTTModel):
-    post = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     parent = TreeForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
 
@@ -35,11 +31,14 @@ class ArticleComment(AbstractComment, MPTTModel):
         order_insertion_by = ['-date_create']
 
     def __str__(self):
-        return f'Comment by {self.author} in {self.post}.'
+        return f'Comment by {self.author} in {self.article}.'
+    
+    def get_article_url(self):
+        return self.article.get_absolute_url()
 
 
 class NewsComment(AbstractComment, MPTTModel):
-    post = models.ForeignKey(News, on_delete=models.CASCADE, related_name='comments')
+    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     parent = TreeForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='children')
 
@@ -48,4 +47,4 @@ class NewsComment(AbstractComment, MPTTModel):
         order_insertion_by = ['-date_create']
 
     def __str__(self):
-        return f'Comment by {self.author} in {self.post}.'
+        return f'Comment by {self.author} in {self.news}.'

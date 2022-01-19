@@ -11,10 +11,11 @@ class UserSerializer(serializers.ModelSerializer):
     '''
     post_count = serializers.IntegerField()
     comments_count = serializers.IntegerField()
+    url = serializers.URLField(source='get_absolute_url')
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'rating', 'post_count', 'comments_count', 'date_registration', 'last_login', 'role', 'description', 'gender', 'birth_date', 'is_newsmaker')
+        fields = ('email', 'username', 'url', 'rating', 'post_count', 'comments_count', 'date_registration', 'last_login', 'role', 'description', 'gender', 'birth_date', 'is_newsmaker')
         read_only_fields = ('username', 'role', 'is_newsmaker')
 
 
@@ -23,6 +24,7 @@ class AdminSerializer(serializers.ModelSerializer):
     '''
     post_count = serializers.IntegerField()
     comments_count = serializers.IntegerField()
+    url = serializers.URLField(source='get_absolute_url')
 
     class Meta:
         model = User

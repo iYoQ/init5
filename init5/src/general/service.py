@@ -17,7 +17,7 @@ def change_or_add_users_changed_rating(serializer, instance, validated_data):
 
     else:
         instance.users_changed_rating[user.username] = {
-            'url': user.url,
+            'url': user.get_absolute_url(),
             'value': get_request_rating
         }
 

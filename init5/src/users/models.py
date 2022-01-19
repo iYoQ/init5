@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 from django.core import validators
 from django.contrib.auth.models import (
     AbstractBaseUser, 
@@ -99,8 +100,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         qs_comments = qs_articles.union(qs_news)
         return qs_comments.count()
     
-    # def get_absolute_url(self):
-    #     pass
+    def get_absolute_url(self):
+        return reverse('users-detail', kwargs={'username': self.username})
     
     class Meta:
         verbose_name = 'User'
