@@ -23,3 +23,9 @@ class PostPagination(CustomResponsePagination):
     page_size = 10
     cursor_query_param = 'page'
     ordering = '-date_create'
+
+
+class CommentsPagination(CustomResponsePagination):
+    page_size = 15
+    cursor_query_param = 'page'
+    ordering = '-date_create'

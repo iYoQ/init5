@@ -15,6 +15,11 @@ class AbstractCommentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     author = serializers.CharField(source='author.username', read_only=True)
 
+    
+    default_error_messages = {
+        'cannot_create_comment': 'Cannot create comment, wrong data.'
+    }
+
     class Meta:
         abstract = True
 
@@ -34,10 +39,6 @@ class AbstractListCommentSerializer(AbstractCommentSerializer):
 
 
 class ArticleCommentSerializer(AbstractCommentSerializer):
-    default_error_messages = {
-        'cannot_create_comment': 'Cannot create comment, wrong data.'
-    }
-
 
     class Meta:
         model = ArticleComment

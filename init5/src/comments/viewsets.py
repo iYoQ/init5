@@ -1,7 +1,9 @@
-from django.urls import reverse
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.decorators import action
+from ..general.paginations import CommentsPagination
 from rest_framework.mixins import (
     CreateModelMixin,
     RetrieveModelMixin, 
@@ -21,6 +23,7 @@ from .serializers import *
 class CommentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
+    pagination_class = CommentsPagination
 
     def get_permissions(self):
         if self.action == 'change_rating':
@@ -36,8 +39,14 @@ class CommentViewSet(ModelViewSet):
     def change_rating(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
     
+    def create(self, data, *args, **kwargs):
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    
     def perform_create(self, serializer):
-        print(serializer.validated_data)
         if news := serializer.validated_data.get('news'):
             post_url = news.get_absolute_url()
         elif article := serializer.validated_data.get('article'):
@@ -63,6 +72,11 @@ class ArticleCommentViewSet(CommentViewSet):
         if self.action == 'change_rating':
             return ArticleCommentChangeRatingSerializer
         return super().get_serializer_class()
+    
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data.update({'article': kwargs['article_id']})
+        return super().create(data, *args, **kwargs)
 
 class NewsCommentViewSet(CommentViewSet):
     serializer_class = NewsCommentSerializer
@@ -78,11 +92,17 @@ class NewsCommentViewSet(CommentViewSet):
         if self.action == 'change_rating':
             return NewsCommentChangeRatingSerializer
         return super().get_serializer_class()
+    
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+        data.update({'news': kwargs['news_id']})
+        return super().create(data, *args, **kwargs)
 
 
 class UserCommentsViewSet(ListModelMixin, GenericViewSet):
     serializer_class = UserCommentsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    pagination_class = CommentsPagination
 
     def get_queryset(self):
         qs_articles_comments = ArticleComment.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
