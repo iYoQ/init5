@@ -25,7 +25,6 @@ class AbstractCommentSerializer(serializers.ModelSerializer):
 
 
 class AbstractListCommentSerializer(AbstractCommentSerializer):
-    author = serializers.CharField(source='author.username', read_only=True)
     children = CommentRecursiveChildSerializer(many=True)
     content = serializers.SerializerMethodField()
 

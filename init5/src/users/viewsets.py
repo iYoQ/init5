@@ -1,3 +1,4 @@
+from xml.dom import ValidationErr
 from rest_framework import status, filters
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -20,6 +21,8 @@ from ..articles.serializers import ArticleListSerializer
 from ..general.permissions import UserIsOwnerOrAdmin
 from ..general.serializers import AdminDeleteSerializer
 from ..general.paginations import UserPagination
+from .tasks import send_activation_email
+from .service import encode_uid, decode_uid
 from .serializers import *
 
 
@@ -53,6 +56,8 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve', 'me'] and self.request.user.is_staff:
             return AdminSerializer
+        elif self.action == 'list':
+            return UserListSerializer
         elif self.action == 'registration':
             return UserRegistrationSerializer
         elif self.action == 'partial_update':
@@ -62,6 +67,8 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
                 return UpdateUserSerializer
         elif self.action == 'destroy':
             return AdminDeleteSerializer
+        elif self.action == 'activation':
+            return UserActivationSerializer
         
         return self.serializer_class
 
@@ -72,6 +79,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
+    
     @action(['get', 'patch'], detail=False)
     def me(self, request, *args, **kwargs):    
         self.get_object = self.request.user
@@ -79,6 +87,15 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
             return self.retrieve(request, *args, **kwargs)
         elif request.method == 'PATCH':
             return self.partial_update(request, *args, **kwargs)
+    
+    @action(["post"], detail=False)
+    def activation(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+        user.is_active = True
+        user.save()
+        return Response('Registration complete.', status=status.HTTP_200_OK)
 
     def perform_update(self, serializer):
         super().perform_update(serializer)
@@ -94,4 +111,6 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         return Response('user deleted.', status=status.HTTP_204_NO_CONTENT)
     
     def perform_create(self, serializer):
-        serializer.save()
+        user = serializer.save()
+        secret_code = encode_uid(user.pk)
+        send_activation_email.delay(user.email, secret_code)

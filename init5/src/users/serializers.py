@@ -1,12 +1,25 @@
 from rest_framework import serializers
 from rest_framework.settings import api_settings
+from rest_framework.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
 from django.db import IntegrityError, transaction
 from .models import User
+from .service import decode_uid
 
 
-class UserSerializer(serializers.ModelSerializer):
+class AbstractUserSerializer(serializers.ModelSerializer):
+    email = serializers.SerializerMethodField()
+
+    def get_email(self, obj):
+        if obj.hide_email:
+            return 'hidden'
+        return obj.email
+    
+    class Meta:
+        abstract = True
+
+class UserSerializer(AbstractUserSerializer):
     ''' Show user profile
     '''
     post_count = serializers.IntegerField()
@@ -17,6 +30,13 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'username', 'url', 'rating', 'post_count', 'comments_count', 'date_registration', 'last_login', 'role', 'description', 'gender', 'birth_date', 'is_newsmaker')
         read_only_fields = ('username', 'role', 'is_newsmaker')
+
+
+class UserListSerializer(AbstractUserSerializer):
+
+    class Meta:
+        model = User
+        fields = ('email', 'username', 'rating', 'last_login', 'role', 'description')
 
 
 class AdminSerializer(serializers.ModelSerializer):
@@ -32,6 +52,8 @@ class AdminSerializer(serializers.ModelSerializer):
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     default_error_messages = {
         'cannot_create_user': 'Unable to create account.'
     }
@@ -67,8 +89,33 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def perform_create(self, validated_data):
         user = User.objects.create_user(**validated_data)
+        user.is_active = False
+        user.save(update_fields=['is_active'])
         return user
 
+
+class UserActivationSerializer(serializers.Serializer):
+    secret_code = serializers.CharField(write_only=True)
+
+    default_error_messages = {
+        'invalid_code': 'Invalid code.',
+        'alredy_activate': 'Alredy activate.'
+    }
+
+    def validate(self, attrs):
+        try:
+            uid = decode_uid(attrs.get('secret_code', None))
+            self.user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError, TypeError, OverflowError):
+            raise ValidationError(
+                {'error': [self.error_messages['invalid_code']]}, code='invalid_code'
+            )
+        if not self.user.is_active:
+            return attrs
+
+        raise ValidationError(
+            {'error': [self.error_messages['alredy_activate']]}, code='alredy_activate'
+        )
 
 class UpdateUserSerializer(serializers.ModelSerializer):
 
