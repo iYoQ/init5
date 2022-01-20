@@ -117,6 +117,25 @@ class UserActivationSerializer(serializers.Serializer):
             {'error': [self.error_messages['alredy_activate']]}, code='alredy_activate'
         )
 
+
+class UserRestorePasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    default_error_messages = {
+        'invalid_email': 'Email not found.',
+        'alredy_activate': 'Alredy activate.'
+    }
+
+    def validate(self, attrs):
+        try:
+            user_email = attrs.get('email', None)
+            self.user = User.objects.get(email=user_email)
+            if self.user.is_active:
+                return attrs
+        except User.DoesNotExist:
+            self.fail('invalid_email')
+
+
 class UpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:

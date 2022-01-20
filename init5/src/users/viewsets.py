@@ -21,13 +21,13 @@ from ..articles.serializers import ArticleListSerializer
 from ..general.permissions import UserIsOwnerOrAdmin
 from ..general.serializers import AdminDeleteSerializer
 from ..general.paginations import UserPagination
-from .tasks import send_activation_email
-from .service import encode_uid, decode_uid
+from .tasks import send_activation_email, send_new_password
+from .service import encode_uid
 from .serializers import *
 
 
 class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     pagination_class = UserPagination
     filter_backends = [filters.SearchFilter]
@@ -39,8 +39,6 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
     def get_queryset(self):
         if self.request.user.is_staff:
             queryset = User.objects.all()
-        else:
-            queryset = User.objects.filter(is_active=True)
         return queryset
 
     def get_permissions(self):
@@ -69,6 +67,8 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
             return AdminDeleteSerializer
         elif self.action == 'activation':
             return UserActivationSerializer
+        elif self.action == 'restore_password':
+            return UserRestorePasswordSerializer
         
         return self.serializer_class
 
@@ -96,6 +96,16 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         user.is_active = True
         user.save()
         return Response('Registration complete.', status=status.HTTP_200_OK)
+    
+    @action(["post"], detail=False)
+    def restore_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+        password = User.objects.make_random_password()
+        user.set_password(password)
+        user.save()
+        send_new_password.delay(user.email, password)
 
     def perform_update(self, serializer):
         super().perform_update(serializer)

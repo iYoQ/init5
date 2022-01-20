@@ -9,10 +9,10 @@ def encode_uid(pk):
 def decode_uid(pk):
     return force_str(urlsafe_base64_decode(pk))
 
-def send(user_email, secret_code):
+def send(user_email, subject, message):
     send_mail(
-        'Your registration',
-        f'Your activation code: {secret_code}',
+        f'{subject}',
+        f'{message}',
         settings.EMAIL_HOST_USER,
         [user_email],
         fail_silently=False,
