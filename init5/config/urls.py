@@ -17,13 +17,18 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, re_path, include
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 from .router import router
 from .yasg import urlpatterns as doc_url
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    path('auth/', include('djoser.urls.jwt')),
+    path('api/v1/auth/jwt-create/', TokenObtainPairView.as_view(), name='token_obtan_pair'),
+    path('api/v1/auth/jwt-refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     re_path('api/v1/', include(router.urls)),
 
 ]
