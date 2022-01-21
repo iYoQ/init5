@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from django.contrib.auth import logout
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser
 from .models import User
 from rest_framework.mixins import (
     RetrieveModelMixin, 
@@ -49,8 +50,6 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
             self.permission_classes = [IsAdminUser]
         elif self.action == 'me':
             self.permission_classes = [UserIsOwnerOrAdmin]
-        elif self.action == 'restore_password':
-            self.permission_classes = [IsAuthenticated]
 
         return super().get_permissions()
 
@@ -65,7 +64,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
             return AdminUpdateUserSerializer
         elif self.action == 'me':
             if self.request.method == 'PATCH':
-                return UpdateUserSerializer
+                return UserUpdateSerializer
         elif self.action == 'destroy':
             return AdminDeleteSerializer
         elif self.action == 'activation':
@@ -83,7 +82,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
-    @action(['get', 'patch'], detail=False)
+    @action(['get', 'patch'], detail=False, parser_classes=(MultiPartParser,))
     def me(self, request, *args, **kwargs):    
         self.get_object = self.request.user
         if request.method == 'GET':
@@ -109,6 +108,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         user.set_password(password)
         user.save()
         send_new_password.delay(user.email, password)
+        return Response('Email has been sent', status=status.HTTP_200_OK)
 
     def perform_update(self, serializer):
         super().perform_update(serializer)

@@ -139,8 +139,7 @@ class UserRestorePasswordSerializer(serializers.Serializer):
             self.fail('invalid_email')
 
 
-class UpdateUserSerializer(serializers.ModelSerializer):
-    avatar = serializers.ImageField()
+class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User

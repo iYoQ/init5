@@ -1,3 +1,4 @@
+from email.policy import default
 from os import path, remove
 from django.conf import settings
 from django.db import models
@@ -78,7 +79,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     description = models.TextField(blank=True, null=True)
     gender = models.CharField(max_length=10, choices=GENDER, null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
-    avatar = models.ImageField(upload_to=upload_to, blank=True, null=True)
+    avatar = models.ImageField(upload_to=upload_to, blank=True, null=True, default='/users/standard.png')
     rating = models.IntegerField(default=0)
     role = models.CharField(max_length=20, choices=ROLE, default=USER, null=True, blank=True)
     date_registration = models.DateTimeField(verbose_name='date registration', auto_now_add=True)
