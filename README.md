@@ -1,5 +1,4 @@
 # init5
-project for step
 
 
 docker run --name=your_name -d -p 6379:6379 redis

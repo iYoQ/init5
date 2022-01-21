@@ -1,9 +1,12 @@
+import sys
 from rest_framework import serializers
 from rest_framework.settings import api_settings
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
 from django.db import IntegrityError, transaction
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from PIL import Image
 from .models import User
 from .service import decode_uid
 
@@ -28,7 +31,7 @@ class UserSerializer(AbstractUserSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'url', 'rating', 'post_count', 'comments_count', 'date_registration', 'last_login', 'role', 'description', 'gender', 'birth_date', 'is_newsmaker')
+        fields = ('email', 'username', 'avatar', 'url', 'rating', 'post_count', 'comments_count', 'date_registration', 'last_login', 'role', 'description', 'gender', 'birth_date', 'is_newsmaker')
         read_only_fields = ('username', 'role', 'is_newsmaker')
 
 
@@ -36,7 +39,7 @@ class UserListSerializer(AbstractUserSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'username', 'rating', 'last_login', 'role', 'description')
+        fields = ('email', 'username', 'avatar', 'rating', 'last_login', 'role', 'description')
 
 
 class AdminSerializer(serializers.ModelSerializer):
@@ -137,10 +140,17 @@ class UserRestorePasswordSerializer(serializers.Serializer):
 
 
 class UpdateUserSerializer(serializers.ModelSerializer):
+    avatar = serializers.ImageField()
 
     class Meta:
         model = User
-        fields = ('description', 'birth_date', 'gender', )
+        fields = ('avatar', 'description', 'birth_date', 'gender', )
+
+    def validate_avatar(self, image):
+        MAX_FILE_SIZE = 2000000    # 2MB
+        if image.size > MAX_FILE_SIZE:
+            raise ValidationError("File size too big.")
+        return image
 
 
 class AdminUpdateUserSerializer(serializers.ModelSerializer):

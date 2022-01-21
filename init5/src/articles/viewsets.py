@@ -24,7 +24,6 @@ from .serializers import *
 
 
 class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, ListModelMixin, GenericViewSet):
-    queryset = Article.objects.filter(active=True)
     serializer_class = ArticleSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     pagination_class = PostPagination
@@ -36,6 +35,8 @@ class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Lis
     def get_queryset(self):
         if self.request.user.is_staff:
             queryset = Article.objects.all()
+        else:
+            queryset = Article.objects.filter(active=True)
         return queryset
 
     def get_permissions(self):

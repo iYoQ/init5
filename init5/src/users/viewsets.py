@@ -27,7 +27,6 @@ from .serializers import *
 
 
 class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
-    queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     pagination_class = UserPagination
     filter_backends = [filters.SearchFilter]
@@ -39,6 +38,8 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
     def get_queryset(self):
         if self.request.user.is_staff:
             queryset = User.objects.all()
+        else:
+            queryset = User.objects.filter(is_active=True)
         return queryset
 
     def get_permissions(self):
@@ -48,6 +49,8 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
             self.permission_classes = [IsAdminUser]
         elif self.action == 'me':
             self.permission_classes = [UserIsOwnerOrAdmin]
+        elif self.action == 'restore_password':
+            self.permission_classes = [IsAuthenticated]
 
         return super().get_permissions()
 

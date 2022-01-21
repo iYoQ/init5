@@ -1,3 +1,5 @@
+from os import path, remove
+from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.core import validators
@@ -6,9 +8,19 @@ from django.contrib.auth.models import (
     PermissionsMixin, 
     BaseUserManager,
 )
+
 from ..articles.models import Article
 from ..news.models import News
 from ..comments.models import ArticleComment, NewsComment
+
+def upload_to(instance, filename):
+    extension = path.splitext(filename)[1]
+    filename = f'avatar{extension}'
+    avatar_path = f'users/{instance.username}/avatar/{filename}'
+    fullpath = path.join(settings.MEDIA_ROOT, avatar_path)
+    if path.exists(fullpath):
+        remove(fullpath)
+    return avatar_path
 
 
 class UserManager(BaseUserManager):
@@ -66,7 +78,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     description = models.TextField(blank=True, null=True)
     gender = models.CharField(max_length=10, choices=GENDER, null=True, blank=True)
     birth_date = models.DateField(null=True, blank=True)
-    avatar = models.ImageField(upload_to='user/avatar/', blank=True, null=True)
+    avatar = models.ImageField(upload_to=upload_to, blank=True, null=True)
     rating = models.IntegerField(default=0)
     role = models.CharField(max_length=20, choices=ROLE, default=USER, null=True, blank=True)
     date_registration = models.DateTimeField(verbose_name='date registration', auto_now_add=True)

@@ -21,7 +21,6 @@ from .serializers import *
 
 
 class NewsViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet):
-    queryset = News.objects.filter(active=True)
     serializer_class = NewsSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [filters.SearchFilter]
@@ -32,6 +31,8 @@ class NewsViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destro
     def get_queryset(self):
         if self.request.user.is_staff:
             queryset = News.objects.all()
+        else:
+            queryset = News.objects.filter(active=True)
         return queryset
 
     def get_permissions(self):
