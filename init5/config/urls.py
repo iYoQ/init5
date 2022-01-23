@@ -21,6 +21,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from .router import router
 from .yasg import urlpatterns as doc_url
 
@@ -30,10 +31,13 @@ urlpatterns = [
     path('api/v1/auth/jwt-create/', TokenObtainPairView.as_view(), name='token_obtan_pair'),
     path('api/v1/auth/jwt-refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     re_path('api/v1/', include(router.urls)),
+    path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/v1/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/v1/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
 ]
 
-urlpatterns += doc_url
+# urlpatterns += doc_url
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
