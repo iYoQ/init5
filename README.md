@@ -1,8 +1,24 @@
 # init5
 
 
-docker run --name=your_name -d -p 6379:6379 redis
+## Старт
 
-celery -A config worker -l info --pool=gevent
+#### 1) Создать образ
 
-celery -A config flower --port=5566
+    docker-compose build
+
+##### 2) Запустить контейнер
+
+    docker-compose up
+    
+##### 3) Перейти по адресу
+
+    http://127.0.0.1:8000/api/v1/swagger/
+
+##### 4) Создать суперюзера
+
+    docker exec -it init5_web_1 python manage.py createsuperuser
+                                                        
+##### 7) Если нужно очистить БД
+
+    docker-compose down -v
