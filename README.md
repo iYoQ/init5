@@ -1,24 +1,24 @@
 # init5
 
 
-## Старт
+## Start
 
-#### 1) Создать образ
+#### 1) Create image
 
     docker-compose build
 
-##### 2) Запустить контейнер
+##### 2) Run container
 
     docker-compose up
     
-##### 3) Перейти по адресу
+##### 3) Move on
 
     http://127.0.0.1:8000/api/v1/swagger/
 
-##### 4) Создать суперюзера
+##### 4) Create superuser
 
     docker exec -it init5_web_1 python manage.py createsuperuser
                                                         
-##### 7) Если нужно очистить БД
+##### 7) Clear db
 
     docker-compose down -v
