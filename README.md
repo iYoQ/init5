@@ -3,7 +3,10 @@
 
 ## Start
 
-#### 1) Create image
+#### 1) Create .env.dev file
+    env file to be in VAR=VAL format
+
+#### 2) Build image
 
     docker-compose build
 
