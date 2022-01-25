@@ -133,3 +133,4 @@ dmypy.json
 
 
 doc-dev
+.env.dev

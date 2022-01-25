@@ -23,7 +23,6 @@ from rest_framework_simplejwt.views import (
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from .router import router
-from .yasg import urlpatterns as doc_url
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -36,8 +35,6 @@ urlpatterns = [
     path('api/v1/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
 ]
-
-# urlpatterns += doc_url
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -79,7 +79,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response('Check your email for complete registration.', status=status.HTTP_201_CREATED)
     
     
     @action(['get', 'patch'], detail=False, parser_classes=(MultiPartParser,))
