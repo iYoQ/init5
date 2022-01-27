@@ -29,6 +29,13 @@ DEBUG = bool(int(os.environ.get('DEBUG', default=1)))
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', default=' * ').split(' ')
 
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8080',
+    'http://127.0.0.1:8000',
+    'http://localhost:8081',
+    'http://127.0.0.1:8081',
+]
+
 
 # Application definition
 
@@ -45,6 +52,7 @@ INSTALLED_APPS = [
     'src.news.apps.NewsConfig',
     'src.comments.apps.CommentsConfig',
 
+    "corsheaders",
     'rest_framework',
     'django_filters',
     'rest_framework_simplejwt',
@@ -56,6 +64,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
