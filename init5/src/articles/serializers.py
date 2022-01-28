@@ -4,7 +4,7 @@ from .models import (
     Category,
 )
 from ..general.serializers import CategoryRelatedField, ChangeRatingSerializer
-from ..comments.serializers import ArticleListCommentSeriazlier
+from ..comments.serializers import ArticleListCommentSerializer
 
 
 class ArticleListSerializer(serializers.ModelSerializer):
@@ -12,6 +12,12 @@ class ArticleListSerializer(serializers.ModelSerializer):
     number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
     comments_count = serializers.IntegerField(source='get_comments_count', read_only=True)
     category = serializers.CharField(source='category.name', read_only=True)
+    content = serializers.SerializerMethodField()
+
+    def get_content(self, obj):
+        if obj.content.lenght > 100:
+            return obj.content[:100]
+        return obj.content
 
     class Meta:
         model = Article
@@ -22,12 +28,12 @@ class ArticleSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
     number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
     comments_count = serializers.IntegerField(source='get_comments_count', read_only=True)
-    comments = ArticleListCommentSeriazlier(many=True, read_only=True)
+    comments = ArticleListCommentSerializer(many=True, read_only=True)
     category = serializers.CharField(source='category.name', read_only=True)
 
     class Meta:
         model = Article
-        fields = ('id', 'headline', 'content', 'category', 'date_create', 'date_update', 'view_count', 'comments_count', 'comments',  'number_of_users_changed_rating', 'users_changed_rating', 'rating', 'author', )
+        fields = ('id', 'headline', 'content', 'category', 'date_create', 'date_update', 'view_count', 'comments_count', 'comments',  'number_of_users_changed_rating', 'rating', 'author', )
 
 
 class ArticleCreateUpdateSerializer(serializers.ModelSerializer):
@@ -45,19 +51,15 @@ class ArticleChangeRatingSerializer(ChangeRatingSerializer):
         fields = ('rating', )
 
 
-class AdminListSerializer(serializers.ModelSerializer):
-    author = serializers.CharField(source='author.username', read_only=True)
-    number_of_users_changed_rating = serializers.IntegerField(source='count_users_changed_rating')
-    comments_count = serializers.IntegerField(source='get_comments_count', read_only=True)
-    category = serializers.CharField(source='category.name', read_only=True)
+class AdminListSerializer(ArticleListSerializer):
 
     class Meta:
         model = Article
         fields = ('__all__')
 
 
-class AdminDetailSerializer(AdminListSerializer):
-    comments = ArticleListCommentSeriazlier(many=True, read_only=True)
+class AdminDetailSerializer(ArticleSerializer):
+    comments = ArticleListCommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Article

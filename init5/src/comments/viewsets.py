@@ -78,6 +78,7 @@ class ArticleCommentViewSet(CommentViewSet):
         data.update({'article': kwargs['article_id']})
         return super().create(data, *args, **kwargs)
 
+
 class NewsCommentViewSet(CommentViewSet):
     serializer_class = NewsCommentSerializer
 

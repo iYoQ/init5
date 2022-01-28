@@ -17,7 +17,7 @@ from rest_framework.mixins import (
 )
 
 import src.general.permissions as custom_permissions
-from .models import Article
+from .models import Article, Category
 from ..general.serializers import AdminDeleteSerializer
 from ..general.paginations import PostPagination
 from .serializers import *
@@ -73,7 +73,7 @@ class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Lis
     
     @action(['get'], detail=False)
     def top(self, request, *args, **kwargs):
-        queryset = self.get_queryset().order_by('-rating')[:20]
+        queryset = self.get_queryset().order_by('-rating')[:5]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     

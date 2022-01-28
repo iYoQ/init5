@@ -15,7 +15,6 @@ class AbstractCommentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     author = serializers.CharField(source='author.username', read_only=True)
 
-    
     default_error_messages = {
         'cannot_create_comment': 'Cannot create comment, wrong data.'
     }
@@ -32,7 +31,7 @@ class AbstractListCommentSerializer(AbstractCommentSerializer):
         if obj.deleted:
             return None
         return obj.content
-    
+
     class Meta:
         abstract = True
 
@@ -61,7 +60,7 @@ class NewsCommentSerializer(AbstractCommentSerializer):
         return self.fail('cannot_create_comment')
 
 
-class ArticleListCommentSeriazlier(AbstractListCommentSerializer):
+class ArticleListCommentSerializer(AbstractListCommentSerializer):
 
     class Meta:
         list_serializer_class = CommentOnlyParentListSerializer
@@ -69,7 +68,7 @@ class ArticleListCommentSeriazlier(AbstractListCommentSerializer):
         fields = ('id', 'article', 'author', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
 
 
-class NewsListCommentSeriazlier(AbstractListCommentSerializer):
+class NewsListCommentSerializer(AbstractListCommentSerializer):
 
     class Meta:
         list_serializer_class = CommentOnlyParentListSerializer
