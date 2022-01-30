@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import News
-from ..comments.serializers import NewsListCommentSeriazlier
+from ..comments.serializers import NewsListCommentSerializer
+
 
 class NewsListSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
@@ -14,7 +15,7 @@ class NewsListSerializer(serializers.ModelSerializer):
 class NewsSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
     comments_count = serializers.IntegerField(source='get_comments_count', read_only=True)
-    comments = NewsListCommentSeriazlier(many=True, read_only=True)
+    comments = NewsListCommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = News
@@ -28,18 +29,17 @@ class NewsCreateUpdateSerializer(serializers.ModelSerializer):
         fields = ('headline', 'content', 'date_update', )
 
 
-class AdminListSerializer(serializers.ModelSerializer):
+class AdminListSerializer(NewsListSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
     comments_count = serializers.IntegerField(source='get_comments_count', read_only=True)
-    category = serializers.CharField(source='category.name', read_only=True)
 
     class Meta:
         model = News
         fields = ('__all__')
 
 
-class AdminDetailSerializer(AdminListSerializer):
-    comments = NewsListCommentSeriazlier(many=True, read_only=True)
+class AdminDetailSerializer(NewsSerializer):
+    comments = NewsListCommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = News

@@ -89,3 +89,9 @@ class UserArticlesList(ListModelMixin, GenericViewSet):
 
     def get_queryset(self):
         return Article.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
+
+
+class CategoryViewSet(ListModelMixin, GenericViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]

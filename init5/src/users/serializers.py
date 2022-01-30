@@ -2,6 +2,7 @@ import sys
 from rest_framework import serializers
 from rest_framework.settings import api_settings
 from rest_framework.exceptions import ValidationError
+from drf_extra_fields.fields import Base64ImageField
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
 from django.db import IntegrityError, transaction
@@ -21,6 +22,7 @@ class AbstractUserSerializer(serializers.ModelSerializer):
     
     class Meta:
         abstract = True
+
 
 class UserSerializer(AbstractUserSerializer):
     ''' Show user profile
@@ -61,11 +63,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         'cannot_create_user': 'Unable to create account.'
     }
 
-
     class Meta:
         model = User
         fields = ('email', 'username', 'password')
-    
 
     def validate(self, attrs):
         user = User(**attrs)
@@ -140,6 +140,7 @@ class UserRestorePasswordSerializer(serializers.Serializer):
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField()
 
     class Meta:
         model = User

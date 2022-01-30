@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from corsheaders.defaults import default_headers
 from pathlib import Path
 from datetime import timedelta
 import os
@@ -29,12 +30,25 @@ DEBUG = bool(int(os.environ.get('DEBUG', default=1)))
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', default=' * ').split(' ')
 
+# CORS_ALLOW_ALL_ORIGINS = True
+
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:8080',
     'http://127.0.0.1:8080',
     'http://localhost:8081',
     'http://127.0.0.1:8081',
 ]
+
+ACCESS_CONTROL_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'Access-Control-Allow-Credentials',
+    'Access-Control-Allow-Origin',
+    'Access-Control-Allow-Headers',
+]
+
+SESSION_COOKIE_SAMESITE = None
 
 
 # Application definition

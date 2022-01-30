@@ -48,9 +48,9 @@ class CommentViewSet(ModelViewSet):
     
     def perform_create(self, serializer):
         if news := serializer.validated_data.get('news'):
-            post_url = news.get_absolute_url()
+            post_url = f'/news/{news.id}/'
         elif article := serializer.validated_data.get('article'):
-            post_url = article.get_absolute_url()
+            post_url = f'/{article.id}/'
         serializer.save(author=self.request.user, post_url=post_url)
     
     def perform_destroy(self, instance):
@@ -71,6 +71,10 @@ class ArticleCommentViewSet(CommentViewSet):
     def get_serializer_class(self):
         if self.action == 'change_rating':
             return ArticleCommentChangeRatingSerializer
+        if self.action == 'partial_update' and self.request.user.is_staff:
+            return AdminArticleCommentUpdateSerializer
+        if self.action == 'partial_update':
+            return ArticleCommentUpdateSerializer
         return super().get_serializer_class()
     
     def create(self, request, *args, **kwargs):
@@ -92,6 +96,10 @@ class NewsCommentViewSet(CommentViewSet):
     def get_serializer_class(self):
         if self.action == 'change_rating':
             return NewsCommentChangeRatingSerializer
+        if self.action == 'partial_update' and self.request.user.is_staff:
+            return AdminNewsCommentUpdateSerializer
+        if self.action == 'partial_update':
+            return NewsCommentUpdateSerializer
         return super().get_serializer_class()
     
     def create(self, request, *args, **kwargs):

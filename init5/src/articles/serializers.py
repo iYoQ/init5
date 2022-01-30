@@ -15,8 +15,8 @@ class ArticleListSerializer(serializers.ModelSerializer):
     content = serializers.SerializerMethodField()
 
     def get_content(self, obj):
-        if obj.content.lenght > 100:
-            return obj.content[:100]
+        if len(obj.content) > 500:
+            return obj.content[:500]
         return obj.content
 
     class Meta:
@@ -71,3 +71,10 @@ class AdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Article
         fields = ('headline', 'content', 'active', 'moderation', 'category', 'date_create', 'date_update', )
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
+        fields = ('id', 'name', )

@@ -16,6 +16,7 @@ coreschema==0.0.4
 Deprecated==1.2.13
 Django==4.0.1
 django-cors-headers==3.11.0
+django-extra-fields==3.0.2
 django-filter==21.1
 django-js-asset==1.2.2
 django-mptt==0.13.4

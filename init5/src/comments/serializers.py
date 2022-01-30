@@ -14,6 +14,9 @@ from ..general.serializers import (
 class AbstractCommentSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     author = serializers.CharField(source='author.username', read_only=True)
+    avatar = serializers.ImageField(source='author.avatar', read_only=True)
+    rating = serializers.IntegerField(read_only=True)
+    deleted = serializers.BooleanField(read_only=True)
 
     default_error_messages = {
         'cannot_create_comment': 'Cannot create comment, wrong data.'
@@ -24,6 +27,7 @@ class AbstractCommentSerializer(serializers.ModelSerializer):
 
 
 class AbstractListCommentSerializer(AbstractCommentSerializer):
+    avatar = serializers.ImageField(source='author.avatar', read_only=True)
     children = CommentRecursiveChildSerializer(many=True)
     content = serializers.SerializerMethodField()
 
@@ -40,7 +44,7 @@ class ArticleCommentSerializer(AbstractCommentSerializer):
 
     class Meta:
         model = ArticleComment
-        fields = ('id', 'article', 'author', 'content', 'rating', 'deleted', 'parent')
+        fields = ('id', 'author', 'avatar', 'article', 'rating', 'content', 'deleted', 'parent')
     
     def create(self, validated_data):
         if not validated_data.get('parent') or validated_data['parent'].article == validated_data['article']:
@@ -52,7 +56,7 @@ class NewsCommentSerializer(AbstractCommentSerializer):
 
     class Meta:
         model = NewsComment
-        fields = ('id', 'news', 'author', 'rating', 'content', 'deleted', 'parent')
+        fields = ('id', 'news', 'author', 'avatar', 'rating', 'content', 'deleted', 'parent')
     
     def create(self, validated_data):
         if not validated_data.get('parent') or validated_data['parent'].news == validated_data['news']:
@@ -65,7 +69,7 @@ class ArticleListCommentSerializer(AbstractListCommentSerializer):
     class Meta:
         list_serializer_class = CommentOnlyParentListSerializer
         model = ArticleComment
-        fields = ('id', 'article', 'author', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
+        fields = ('id', 'article', 'author', 'avatar', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
 
 
 class NewsListCommentSerializer(AbstractListCommentSerializer):
@@ -73,7 +77,7 @@ class NewsListCommentSerializer(AbstractListCommentSerializer):
     class Meta:
         list_serializer_class = CommentOnlyParentListSerializer
         model = NewsComment
-        fields = ('id', 'news', 'author', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
+        fields = ('id', 'news', 'author', 'avatar', 'content', 'rating', 'date_create', 'date_update', 'deleted', 'children')
 
 
 class ArticleCommentChangeRatingSerializer(ChangeRatingSerializer):
@@ -89,6 +93,33 @@ class NewsCommentChangeRatingSerializer(ChangeRatingSerializer):
         model = NewsComment
         fields = ('rating', )
 
+
+class ArticleCommentUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ArticleComment
+        fields = ('content', )
+
+
+class NewsCommentUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ArticleComment
+        fields = ('content', )
+
+
+class AdminArticleCommentUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ArticleComment
+        fields = ('content', 'deleted')
+
+
+class AdminNewsCommentUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ArticleComment
+        fields = ('content', 'deleted')
 
 class UserCommentsSerializer(serializers.Serializer):
     author = serializers.CharField(source='author.username', read_only=True)

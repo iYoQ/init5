@@ -44,12 +44,10 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         return queryset
 
     def get_permissions(self):
-        if self.action == 'partial_update':
-            self.permission_classes = [IsAdminUser]
+        if self.action in ['me', 'partial_update']:
+            self.permission_classes = [UserIsOwnerOrAdmin]
         elif self.action == 'destroy':
             self.permission_classes = [IsAdminUser]
-        elif self.action == 'me':
-            self.permission_classes = [UserIsOwnerOrAdmin]
 
         return super().get_permissions()
 
@@ -61,10 +59,9 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         elif self.action == 'registration':
             return UserRegistrationSerializer
         elif self.action == 'partial_update':
-            return AdminUpdateUserSerializer
-        elif self.action == 'me':
-            if self.request.method == 'PATCH':
-                return UserUpdateSerializer
+            if self.request.user.is_staff:
+                return AdminUpdateUserSerializer
+            return UserUpdateSerializer
         elif self.action == 'destroy':
             return AdminDeleteSerializer
         elif self.action == 'activation':
@@ -80,15 +77,12 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response('Check your email for complete registration.', status=status.HTTP_201_CREATED)
-    
-    
-    @action(['get', 'patch'], detail=False, parser_classes=(MultiPartParser,))
+
+    @action(['get'], detail=False, parser_classes=(MultiPartParser,))
     def me(self, request, *args, **kwargs):    
         self.get_object = self.request.user
         if request.method == 'GET':
             return self.retrieve(request, *args, **kwargs)
-        elif request.method == 'PATCH':
-            return self.partial_update(request, *args, **kwargs)
     
     @action(["post"], detail=False)
     def activation(self, request, *args, **kwargs):
