@@ -25,10 +25,12 @@ from .serializers import *
 
 class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, ListModelMixin, GenericViewSet):
     serializer_class = ArticleSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     pagination_class = PostPagination
     filter_fields = ['category']
     search_fields = ['headline']
+    ordering_fields = ['date_create']
+    ordering = ['-date_create']
     permission_classes = [IsAuthenticatedOrReadOnly]
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
 
@@ -84,8 +86,11 @@ class ArticleViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Lis
 class UserArticlesList(ListModelMixin, GenericViewSet):
     serializer_class = ArticleListSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     pagination_class = PostPagination
+    search_fields = ['headline']
+    ordering_fields = ['date_create']
+    ordering = ['-date_create']
 
     def get_queryset(self):
         return Article.objects.filter(author__username=self.kwargs.get('username')).select_related('author')
@@ -95,3 +100,4 @@ class CategoryViewSet(ListModelMixin, GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    lookup_field = 'name'

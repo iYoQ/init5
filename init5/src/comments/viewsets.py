@@ -23,7 +23,6 @@ from .serializers import *
 class CommentViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
     http_method_names = ['get', 'post', 'head', 'patch', 'options', 'delete']
-    pagination_class = CommentsPagination
 
     def get_permissions(self):
         if self.action == 'change_rating':
@@ -50,7 +49,7 @@ class CommentViewSet(ModelViewSet):
         if news := serializer.validated_data.get('news'):
             post_url = f'/news/{news.id}/'
         elif article := serializer.validated_data.get('article'):
-            post_url = f'/{article.id}/'
+            post_url = f'/article/{article.id}/'
         serializer.save(author=self.request.user, post_url=post_url)
     
     def perform_destroy(self, instance):

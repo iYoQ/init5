@@ -23,12 +23,10 @@ class Article(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='articles')
 
-
     class Meta:
         verbose_name = 'Article'
         verbose_name_plural = 'Articles'
         ordering = ('date_create', )
-
 
     def __str__(self):
         return f'{self.headline}'

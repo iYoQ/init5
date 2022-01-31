@@ -21,7 +21,7 @@ class UserPagination(CustomResponsePagination):
 
 
 class PostPagination(CustomResponsePagination):
-    page_size = 10
+    page_size = 30
     page_query_param = 'page'
     ordering = '-date_create'
 

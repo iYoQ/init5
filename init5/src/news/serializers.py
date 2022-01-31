@@ -6,6 +6,12 @@ from ..comments.serializers import NewsListCommentSerializer
 class NewsListSerializer(serializers.ModelSerializer):
     author = serializers.CharField(source='author.username', read_only=True)
     comments_count = serializers.IntegerField(source='get_comments_count', read_only=True)
+    content = serializers.SerializerMethodField()
+
+    def get_content(self, obj):
+        if len(obj.content) > 1000:
+            return obj.content[:1000] + '...'
+        return obj.content
 
     class Meta:
         model = News

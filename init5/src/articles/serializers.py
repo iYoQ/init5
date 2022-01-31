@@ -15,8 +15,8 @@ class ArticleListSerializer(serializers.ModelSerializer):
     content = serializers.SerializerMethodField()
 
     def get_content(self, obj):
-        if len(obj.content) > 500:
-            return obj.content[:500]
+        if len(obj.content) > 1000:
+            return obj.content[:1000] + '...'
         return obj.content
 
     class Meta:
