@@ -1,3 +1,8 @@
-from django.shortcuts import render
+from rest_framework import generics
+from .models import MailingList
+from .serializers import MailingListSerializer
 
-# Create your views here.
+
+class Subscribe(generics.ListCreateAPIView):
+    model = MailingList
+    serializer_class = MailingListSerializer

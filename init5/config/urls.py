@@ -22,13 +22,15 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from src.users.views import Subscribe
 from .router import router
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls')),
     path('api/v1/auth/jwt-create/', TokenObtainPairView.as_view(), name='token_obtan_pair'),
     path('api/v1/auth/jwt-refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/v1/subscribe/', Subscribe.as_view()),
     re_path('api/v1/', include(router.urls)),
     path('api/v1/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/v1/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger'),

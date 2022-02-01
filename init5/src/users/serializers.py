@@ -8,7 +8,7 @@ from django.core import exceptions
 from django.db import IntegrityError, transaction
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image
-from .models import User
+from .models import User, MailingList
 from .service import decode_uid
 
 
@@ -158,3 +158,10 @@ class AdminUpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('avatar', 'description', 'birth_date', 'gender', 'is_staff', 'is_newsmaker', 'role', 'is_active')
+
+
+class MailingListSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = MailingList
+        fields = ('email', )
