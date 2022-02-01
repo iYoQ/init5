@@ -30,3 +30,9 @@ class CommentsPagination(CustomResponsePagination):
     page_size = 15
     page_query_param = 'page'
     ordering = '-date_create'
+
+
+class LargePagination(CustomResponsePagination):
+    page_size = 50
+    page_query_param = 'page'
+    ordering = 'date_create'

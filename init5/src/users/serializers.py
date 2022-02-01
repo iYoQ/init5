@@ -164,4 +164,4 @@ class MailingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MailingList
-        fields = ('email', )
+        fields = ('id', 'email', )
