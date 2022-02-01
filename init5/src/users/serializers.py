@@ -157,4 +157,4 @@ class AdminUpdateUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('is_staff', 'description', 'is_newsmaker', 'role', 'is_active')
+        fields = ('avatar', 'description', 'birth_date', 'gender', 'is_staff', 'is_newsmaker', 'role', 'is_active')

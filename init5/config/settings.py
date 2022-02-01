@@ -39,7 +39,6 @@ CORS_ORIGIN_WHITELIST = [
     'http://127.0.0.1:8081',
 ]
 
-ACCESS_CONTROL_ALLOW_CREDENTIALS = True
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -47,9 +46,6 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     'Access-Control-Allow-Origin',
     'Access-Control-Allow-Headers',
 ]
-
-SESSION_COOKIE_SAMESITE = None
-
 
 # Application definition
 

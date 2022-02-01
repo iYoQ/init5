@@ -30,9 +30,9 @@ class NewsViewSet(CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, Destro
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            queryset = News.objects.all()
+            queryset = News.objects.all().order_by('-date_create')
         else:
-            queryset = News.objects.filter(active=True)
+            queryset = News.objects.filter(active=True).order_by('-date_create')
         return queryset
 
     def get_permissions(self):
