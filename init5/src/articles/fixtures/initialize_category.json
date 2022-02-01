@@ -1,0 +1,30 @@
+[
+  {
+    "model": "articles.category",
+    "pk": 1,
+    "fields": {
+      "name": "Дизайн"
+    }
+  },
+  {
+    "model": "articles.category",
+    "pk": 2,
+    "fields": {
+      "name": "Маркетинг"
+    }
+  },
+  {
+    "model": "articles.category",
+    "pk": 3,
+    "fields": {
+      "name": "Разработка"
+    }
+  },
+  {
+    "model": "articles.category",
+    "pk": 4,
+    "fields": {
+      "name": "Sci-fi"
+    }
+  }
+]
