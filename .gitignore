@@ -131,6 +131,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
+# env files
 doc-dev
 .env.dev
+
+# Editor directories 
+.idea
+.vscode
