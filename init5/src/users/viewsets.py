@@ -21,7 +21,7 @@ from rest_framework.permissions import (
 from ..general.permissions import UserIsOwnerOrAdmin
 from ..general.serializers import AdminDeleteSerializer
 from ..general.paginations import UserPagination
-from .tasks import send_confirmation_email, send_new_password
+from .tasks import send_activation_email, send_change_password_confirmation, send_new_password
 from .service import create_confirm_payloads
 from .serializers import *
 
@@ -98,7 +98,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         serializer.is_valid(raise_exception=True)
         user = serializer.user
         uid, token = create_confirm_payloads(user)
-        send_confirmation_email.delay(user.email, uid, token)
+        send_change_password_confirmation.delay(user.email, uid, token)
         return Response('Email has been sent', status=status.HTTP_200_OK)
 
     @action(['post'], detail=False)
@@ -124,4 +124,4 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
     def perform_create(self, serializer):
         user = serializer.save()
         uid, token = create_confirm_payloads(user)
-        send_confirmation_email.delay(user.email, uid, token)
+        send_activation_email.delay(user.email, uid, token)

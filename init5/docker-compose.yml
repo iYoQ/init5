@@ -28,12 +28,24 @@ services:
       - "6379:6379"
     env_file:
       - ./.env.dev
-  worker:
+  celery:
     build:
       context: .
     command: celery -A config worker -l info --pool=gevent
     volumes:
-      - ./:/usr/src/app
+      - ./:/home/app/web
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - web
+      - redis
+      - db
+  celery-beat:
+    build:
+      context: .
+    command: celery -A config beat -l info
+    volumes:
+      - ./:/home/app/web
     env_file:
       - ./.env.dev
     depends_on:
@@ -45,7 +57,7 @@ services:
       context: .
     command: celery -A config flower --port=5566
     volumes:
-      - ./:/usr/src/app
+      - ./:/home/app/web
     ports:
       - "5566:5566"
     env_file:
@@ -53,7 +65,8 @@ services:
     depends_on:
       - web
       - db
-      - worker
+      - celery
+      - celery-beat
       - redis
 
 volumes:

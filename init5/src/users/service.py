@@ -19,11 +19,12 @@ def create_confirm_payloads(user):
     return uid, token
 
 
-def send(user_email, subject, message):
+def send(user_email, subject, html_message):
     send_mail(
-        f'{subject}',
-        f'{message}',
-        settings.EMAIL_HOST_USER,
-        [user_email],
+        subject=subject,
+        message=None,
+        from_email=settings.EMAIL_HOST_USER,
+        recipient_list=[user_email],
         fail_silently=False,
+        html_message=html_message
     )
