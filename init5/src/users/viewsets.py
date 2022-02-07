@@ -1,4 +1,3 @@
-from xml.dom import ValidationErr
 from rest_framework import status, filters
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -7,23 +6,23 @@ from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser
 from .models import User
 from rest_framework.mixins import (
-    RetrieveModelMixin, 
-    UpdateModelMixin, 
-    DestroyModelMixin, 
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    DestroyModelMixin,
     ListModelMixin
 )
 from rest_framework.permissions import (
-    AllowAny, 
-    IsAdminUser, 
-    IsAuthenticated, 
+    AllowAny,
+    IsAdminUser,
+    IsAuthenticated,
     IsAuthenticatedOrReadOnly
 )
-from ..articles.serializers import ArticleListSerializer
+
 from ..general.permissions import UserIsOwnerOrAdmin
 from ..general.serializers import AdminDeleteSerializer
 from ..general.paginations import UserPagination
-from .tasks import send_activation_email, send_new_password
-from .service import encode_uid
+from .tasks import send_confirmation_email, send_new_password
+from .service import create_confirm_payloads
 from .serializers import *
 
 
@@ -64,8 +63,8 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
             return UserUpdateSerializer
         elif self.action == 'destroy':
             return AdminDeleteSerializer
-        elif self.action == 'activation':
-            return UserActivationSerializer
+        elif self.action in ['activation', 'create_new_password']:
+            return UserConfirmSerializer
         elif self.action == 'restore_password':
             return UserRestorePasswordSerializer
         
@@ -84,7 +83,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         if request.method == 'GET':
             return self.retrieve(request, *args, **kwargs)
     
-    @action(["post"], detail=False)
+    @action(['post'], detail=False)
     def activation(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -93,8 +92,17 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         user.save()
         return Response('Registration complete.', status=status.HTTP_200_OK)
     
-    @action(["post"], detail=False)
+    @action(['post'], detail=False)
     def restore_password(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+        uid, token = create_confirm_payloads(user)
+        send_confirmation_email.delay(user.email, uid, token)
+        return Response('Email has been sent', status=status.HTTP_200_OK)
+
+    @action(['post'], detail=False)
+    def create_new_password(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.user
@@ -102,11 +110,7 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
         user.set_password(password)
         user.save()
         send_new_password.delay(user.email, password)
-        return Response('Email has been sent', status=status.HTTP_200_OK)
-
-    def perform_update(self, serializer):
-        super().perform_update(serializer)
-        user = serializer.instance
+        return Response('Check email for new password', status=status.HTTP_200_OK)
     
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -119,5 +123,5 @@ class UserViewSet(RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListM
     
     def perform_create(self, serializer):
         user = serializer.save()
-        secret_code = encode_uid(user.pk)
-        send_activation_email.delay(user.email, secret_code)
+        uid, token = create_confirm_payloads(user)
+        send_confirmation_email.delay(user.email, uid, token)

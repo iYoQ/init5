@@ -1,4 +1,4 @@
-import sys
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework import serializers
 from rest_framework.settings import api_settings
 from rest_framework.exceptions import ValidationError
@@ -6,8 +6,6 @@ from drf_extra_fields.fields import Base64ImageField
 from django.contrib.auth.password_validation import validate_password
 from django.core import exceptions
 from django.db import IntegrityError, transaction
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from PIL import Image
 from .models import User, MailingList
 from .service import decode_uid
 
@@ -25,8 +23,8 @@ class AbstractUserSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(AbstractUserSerializer):
-    ''' Show user profile
-    '''
+    """ Show user profile
+    """
     post_count = serializers.IntegerField()
     comments_count = serializers.IntegerField()
     url = serializers.URLField(source='get_absolute_url')
@@ -45,8 +43,8 @@ class UserListSerializer(AbstractUserSerializer):
 
 
 class AdminSerializer(serializers.ModelSerializer):
-    '''Show user profile for admin
-    '''
+    """Show user profile for admin
+    """
     post_count = serializers.IntegerField()
     comments_count = serializers.IntegerField()
     url = serializers.URLField(source='get_absolute_url')
@@ -97,27 +95,29 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserActivationSerializer(serializers.Serializer):
-    secret_code = serializers.CharField(write_only=True)
+class UserConfirmSerializer(serializers.Serializer):
+    encode_uid = serializers.CharField(write_only=True)
+    token = serializers.CharField(write_only=True)
 
     default_error_messages = {
-        'invalid_code': 'Invalid code.',
-        'alredy_activate': 'Alredy activate.'
+        'invalid_uid': 'Invalid uid.',
+        'invalid_token': 'Invalid token'
     }
 
     def validate(self, attrs):
         try:
-            uid = decode_uid(attrs.get('secret_code', None))
+            uid = decode_uid(attrs.get('encode_uid', None))
             self.user = User.objects.get(pk=uid)
         except (User.DoesNotExist, ValueError, TypeError, OverflowError):
             raise ValidationError(
-                {'error': [self.error_messages['invalid_code']]}, code='invalid_code'
+                {'error': [self.error_messages['invalid_uid']]}, code='invalid_uid'
             )
-        if not self.user.is_active:
+        token_is_valid = default_token_generator.check_token(self.user, attrs.get('token', None))
+        if token_is_valid:
             return attrs
 
         raise ValidationError(
-            {'error': [self.error_messages['alredy_activate']]}, code='alredy_activate'
+            {'error': [self.error_messages['invalid_token']]}, code='invalid_token'
         )
 
 
@@ -125,8 +125,7 @@ class UserRestorePasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
     default_error_messages = {
-        'invalid_email': 'Email not found.',
-        'alredy_activate': 'Alredy activate.'
+        'invalid_email': 'Email not found.'
     }
 
     def validate(self, attrs):

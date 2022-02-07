@@ -1,4 +1,3 @@
-from email.policy import default
 from os import path, remove
 from django.conf import settings
 from django.db import models
@@ -13,6 +12,7 @@ from django.contrib.auth.models import (
 from ..articles.models import Article
 from ..news.models import News
 from ..comments.models import ArticleComment, NewsComment
+
 
 def upload_to(instance, filename):
     extension = path.splitext(filename)[1]

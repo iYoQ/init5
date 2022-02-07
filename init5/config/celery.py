@@ -12,6 +12,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'send_mailing_for_subscribers': {
         'task': 'src.users.tasks.send_selection',
-        'schedule': crontab(day_of_week='sunday'),
+        # 'schedule': crontab(day_of_week='sunday'),
+        'schedule': crontab(minute='*/1'),
     },
 }
