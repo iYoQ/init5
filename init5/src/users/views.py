@@ -14,3 +14,11 @@ class Subscribe(generics.ListCreateAPIView, generics.DestroyAPIView):
     pagination_class = LargePagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['email']
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            self.permission_classes = [AllowAny]
+        elif self.request.method in ['GET', 'DELETE']:
+            self.permission_classes = [IsAdminUser]
+
+        return super().get_permissions()
